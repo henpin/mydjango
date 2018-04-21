@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 
+"""
+ジャンゴラモデル
+"""
+
 # Create your models here.
 class FormData(models.Model):
     """ フォームそのもの"""
@@ -11,6 +15,7 @@ class FormData(models.Model):
 
     def __unicode__(self):
         return self.form_name
+
 
 class InputData(models.Model):
     """ 個々のInputでーた"""
@@ -38,12 +43,20 @@ class InputData(models.Model):
     
 class LogManageData(models.Model):
     """ ログマネージャ """
-    uuid = models.CharField("UUID", max_length=1024, primary_key=True)
+    uuid = models.CharField("UUID", max_length=1024, primary_key=True) # 一意のログ管理ID:Ajaxで利用
     form = models.ForeignKey(FormData) # フォーム
+    datetime = models.DateTimeField("受信時間",default=timezone.now) # 受信時間
+
+    def __unicode__(self):
+        return self.uuid
 
 class LogData(models.Model):
     """ 入力ログ """
     manager = models.ForeignKey(LogManageData) # ログマネージャ
-    datetime = models.DateTimeField("受信時間")
+    datetime = models.DateTimeField("受信時間",default=timezone.now) # 受信時間
     input_name = models.CharField("name属性", max_length=256) # input名
     input_value = models.CharField("入力値", max_length=256) # input値
+
+    def __unicode__(self):
+        return str(self.datetime)
+

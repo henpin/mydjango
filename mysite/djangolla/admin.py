@@ -10,9 +10,13 @@ from .models import FormData, InputData, LogManageData, LogData
 
 from .apps import gen_url
 
+"""
+Admin画面
+"""
+
 
 def display_html(modelAdmin, req, qs):
-    """ デモHTMLを描画 """
+    """ デモHTMLをリクエスト """
     # クエリセットから始めの値しゅとく
     item = qs[0]
 
@@ -25,7 +29,7 @@ display_html.short_description = "デモページ生成"
 
 
 def display_js(modelAdmin, req, qs):
-    """ デモHTMLを描画 """
+    """ デモJSをリクエスト """
     # クエリセットから始めの値しゅとく
     item = qs[0]
 
@@ -80,6 +84,9 @@ class LogManageDataAdmin(admin.ModelAdmin):
     ]
     # 並べる
     inlines = [LogDataInline]
+    list_display = ("uuid","datetime","form")
+    # ソート順
+    ordering = ["-datetime"]
     
 # Register your models here.
 admin.site.register(FormData, FormDataAdmin)
