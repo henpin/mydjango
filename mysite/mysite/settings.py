@@ -33,6 +33,8 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     'djangolla.apps.DjangollaConfig',
+    'bootstrap_admin', # commentout if theme not installed
+    'bootstrap3', # commentout if theme not installed
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
