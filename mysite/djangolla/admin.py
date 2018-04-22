@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+# general
 from django.shortcuts import render
 from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
-
-# Register your models here.
+# Models
 from .models import FormData, InputData, LogManageData, LogData
-
+# modules
 from .apps import gen_url
+# extenstions
+from django_admin_row_actions import AdminRowActionsMixin
+
 
 """
 Admin画面
@@ -60,7 +63,7 @@ class InputDataInline(admin.TabularInline):
     extra = 3
 
 
-class FormDataAdmin(admin.ModelAdmin):
+class FormDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     """ フォームデータ編集Admin """
     # アクション
     actions = [
@@ -71,12 +74,32 @@ class FormDataAdmin(admin.ModelAdmin):
     inlines = [InputDataInline]
     #list_display = ("form_name")
 
+    def get_row_actions(self, item):
+        """ プラグイン用行アクション """
+        # API利用でフォーム名からurl生成
+        url = gen_url("html",item.form_name)
+        url_forJS = gen_url("js",item.form_name)
+
+        # 行埋め込みアクション
+        row_actions = [
+            {
+                'label': 'デモ画面で確認',
+                'url': url
+            },
+            {
+                'label': 'JS生成',
+                'url': url_forJS
+            }
+        ]
+
+        return row_actions
+
 
 class LogDataInline(admin.TabularInline):
     """ ログデータまとめる"""
     model = LogData
 
-class LogManageDataAdmin(admin.ModelAdmin):
+class LogManageDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     """ ログマネージャデータAdmin"""
     # アクション
     actions = [
@@ -87,6 +110,20 @@ class LogManageDataAdmin(admin.ModelAdmin):
     list_display = ("uuid","datetime","form")
     # ソート順
     ordering = ["-datetime"]
+
+    def get_row_actions(self, item):
+        """ プラグイン用行アクション """
+        # API利用でフォーム名からurl生成
+        url = gen_url("replay_html",item.uuid)
+        row_actions = [
+            {
+                'label': 'プレイバック再生',
+                'url': url
+            }
+        ]
+
+        return row_actions
+        
     
 # Register your models here.
 admin.site.register(FormData, FormDataAdmin)
