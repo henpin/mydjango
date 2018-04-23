@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Django settings for mysite project.
 
@@ -8,6 +9,13 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
+
+---------------------------------------------------------------------
+Addtional apps :
+* bootstrap_admin : admin装飾テーマ
+* bootstrap4 : admin画面にbootstrap4当ててくれる?
+* django_admin_row_actions : actionを行ごとに表示してくれる
+    * https://github.com/DjangoAdminHackers/django-admin-row-actions
 """
 
 import os
@@ -29,10 +37,12 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     'djangolla.apps.DjangollaConfig',
+    'bootstrap_admin', # commentout if theme not installed
+    'bootstrap4', # commentout if theme not installed
+    'django_admin_row_actions', # commentout if theme not installed
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

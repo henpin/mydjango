@@ -1,8 +1,44 @@
+{% load static %}
 <html>
-<head>
-    <script src="/djangolla/kaminaga/{{ formData.form_name }}.js"></script>
+<head>	
+    <!-- css -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css" type="text/css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" type="text/css">
+
+    <!-- js -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js" integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E=" crossorigin="anonymous"></script>
+    <script src="{% static 'jquery_validation.js' %}"></script>
+
+    <!-- validation settings -->
+    <script src="{% static 'validation_settings.js' %}"></script>
+
+    <!-- js from djangolla -->
+    {% if replay_flg %}
+    <!-- load replay js -->
+    <script src="/djangolla/kaminaga/replay_js/{{ uuid }}.js"></script>
+    {% else %}
+    <script src="/djangolla/kaminaga/{{ form_name }}.js"></script>
+    {% endif %}
+
 </head>
 <body>
-    JSが読み込まれます
+<h2>フォーム機能検証画面</h2>
+<p>この画面はDjangollaによって自動生成されています。設定内容が反映されているか確認してください。</p>
+
+<form name="{{ form_name }}">
+    {% for input in object_list %}
+        <label>{{ input.input_name }}</label>
+        <input type="text" name="{{ input.input_name }}">
+        <BR>
+    {% endfor %}
+    <input type="submit">
+</form>
+<input type="hidden" id="uuid" value="{{ uuid }}">
 </body>
+
+<a href="/admin">Adminへ戻る</a>
 </html>
