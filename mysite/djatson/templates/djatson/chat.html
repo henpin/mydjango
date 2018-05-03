@@ -1,0 +1,39 @@
+{% load static %}
+<!-- css -->
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
+<!-- js -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+<!-- chat base js -->
+<script src="{% static 'base_chat.js' %}"></script>
+<!-- chat base css -->
+<link href="{% static 'chat.css' %}" rel="stylesheet"></link>
+
+<!-- js that will be created by jango -->
+<script src="/djatson/kaminaga/chat_js/{{ name }}.js"></script>
+
+
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>Watson Chat</h1>
+        <p>「{{ object.url }}」から抽出・生成されたwatsonと会話(デモ版)</p>
+        <div class="col-sm-12 frame">
+            <ul></ul>
+            <div class="col-sm-10">
+                <div class="msj-rta macro col-sm-12">                        
+                    <div class="text text-r" style="background:whitesmoke !important">
+                        <input class="mytext" placeholder="Type a message"/>
+                    </div> 
+
+                </div>
+                <div style="padding:10px;">
+                    <span class="glyphicon glyphicon-share-alt"></span>
+                </div>                
+            </div>
+        </div>
+        <a class="btn btn-default col-sm-8 col-sm-offset-2" href="#" onclick="javascript:window.history.back(-1);return false;">戻る</a>
+    </body>
+</html>
