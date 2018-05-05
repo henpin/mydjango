@@ -11,6 +11,8 @@ def gen_url(context, pattern):
     """ URL生成 """
     if context == "chat":
         return "/djatson/kaminaga/chat/"+pattern
+    elif context == "initialize":
+        return "/djatson/kaminaga/initialize/"+pattern
     """
     elif context == "js":
         return "/djangolla/kaminaga/"+pattern+".js"

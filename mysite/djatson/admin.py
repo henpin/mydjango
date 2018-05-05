@@ -22,16 +22,21 @@ class URLDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     actions = [
     ]
     # 並べる
-    list_display = ("url","name","initialized","ws_id")
+    list_display = ("url","name","state","ws_id")
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """
         # url生成
-        url = gen_url("chat",item.name)
+        url_for_chat = gen_url("chat",item.name)
+        url_for_initialize = gen_url("initialize",item.name)
         row_actions = [
             {
+                'label': 'watsonを初期化',
+                'url' : url_for_initialize
+            },
+            {
                 'label': 'watsonとしゃべる',
-                'url' : url
+                'url' : url_for_chat
             }
         ]
 

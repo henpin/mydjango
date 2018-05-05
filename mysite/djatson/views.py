@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os
+import json
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.views import generic
 from .models import URLData
+
+from watson_api.watson_interface import WatsonInterface
+import tasks
 
 # JS template file
 TEMPLATE_JS_PATH = os.path.dirname(os.path.abspath(__file__)) + '/static/chat.js'
@@ -37,10 +41,51 @@ def get_chat_js(req, name):
 
     # JS形式に置き換え
     ws_id = '"%s"' % (url_data.ws_id,)
-    initialized = 'true' if url_data.initialized else 'false'
+    initialized = 'true' if url_data.state == u'active' else 'false'
 
     # テンプレートに情報注入
     js_template = js_template.replace(str("{{ WS_ID }}"), str(ws_id))
     js_template = js_template.replace(str("{{ INITIALIZED }}"), str(initialized)) # フォーム名
 
     return HttpResponse(js_template, content_type="text/javascript; charset=UTF-8")
+
+def do_initialize(req,name):
+    """ watsonを初期化する """
+    # データ取得
+    url_data = get_object_or_404(URLData, name=name)
+    state = url_data.state
+
+    # 初期化中でなければ許可
+    if state != "initializing":
+        # 初期化
+        tasks.initialize_watson.delay(url_data)
+
+    # adminにリダイレクト
+    return HttpResponseRedirect('/admin/djatson/urldata/')
+
+
+# ワトソンインターフェイス
+WATSON = WatsonInterface()
+
+
+def call_conversation(req):
+    """ カンバゼーション呼び出す """
+    # POSTだけ処理
+    if req.method == 'POST':
+        # データ取得
+        ws_id = req.POST["ws_id"]
+        _input = req.POST["input"]
+        url_data = get_object_or_404(URLData, ws_id=ws_id)
+
+        # 状態チェック
+        if url_data.state != "active":
+            return HttpResponse("fail")
+
+        # ワトソンインターフェイスで会話
+        res = WATSON.talk(_input,ws_id,"natural")
+
+        # jsonにして返す
+        _json = json.dumps({ "response" : res.decode("utf-8") },ensure_ascii=False)
+
+        return HttpResponse(_json,content_type="application/javascript; charset=UTF-8")
+
