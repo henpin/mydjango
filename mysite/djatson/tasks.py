@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from celery import shared_task
 from .models import URLData
 
+import StringIO
+
 from watson_api.scratson import Scratson
 
 
@@ -22,12 +24,14 @@ def initialize_watson(url_data):
     try :
         # 初期化中フラグ上げる
         url_data.state = 'initializing'
+        url_data.json = '' # クリーニング
         url_data.save()
 
         # 情報取得
         ws_id = url_data.ws_id
         name = url_data.name
         url = url_data.url
+        selector = url_data.selector
 
         # watsonインターフェイス初期化
         watson = Scratson()
@@ -40,11 +44,14 @@ def initialize_watson(url_data):
             url_data.ws_id = generated
             url_data.save()
 
+        # ファイル風オブジェクト(解析済みjson受け取り用)
+        _file = StringIO.StringIO()
         # urlからスクレイピングしてwatson生成
-        watson.main(url)
+        watson.main(url,_file,selector)
 
-        # 終了フラグ上げる
-        url_data.state = "active"
+        # モデル状態更新
+        url_data.state = "active" # 終了フラグ上げる
+        url_data.json = _file.getvalue() # jsonデータ詰め替え
         url_data.save()
 
     except Exception as e:

@@ -13,6 +13,8 @@ def gen_url(context, pattern):
         return "/djatson/kaminaga/chat/"+pattern
     elif context == "initialize":
         return "/djatson/kaminaga/initialize/"+pattern
+    elif context == "json":
+        return "/djatson/kaminaga/view_json/"+pattern
     """
     elif context == "js":
         return "/djangolla/kaminaga/"+pattern+".js"
