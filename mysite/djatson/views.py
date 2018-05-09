@@ -83,7 +83,7 @@ def call_conversation(req):
             return HttpResponse("fail")
 
         # ワトソンインターフェイスで会話
-        res = WATSON.talk(_input,ws_id,"natural")
+        res = WATSON.talk(_input,ws_id,"natural",max_=3)
 
         # jsonにして返す
         _json = json.dumps({ "response" : res.decode("utf-8") },ensure_ascii=False)

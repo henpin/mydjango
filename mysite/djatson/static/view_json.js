@@ -47,6 +47,10 @@ var trimPadding = function(jsonp){
 
 /* jsonをパーすする*/
 var parseJSON = function(json){
+    if (!json){
+        alert("jsonが空のようです")
+        return;
+    }
     try{
         var obj = JSON.parse(json);
     } catch(e){

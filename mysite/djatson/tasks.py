@@ -31,7 +31,7 @@ def initialize_watson(url_data):
         ws_id = url_data.ws_id
         name = url_data.name
         url = url_data.url
-        selector = url_data.selector
+        #selector = url_data.selector # 廃止予定
 
         # watsonインターフェイス初期化
         watson = Scratson()
@@ -47,7 +47,7 @@ def initialize_watson(url_data):
         # ファイル風オブジェクト(解析済みjson受け取り用)
         _file = StringIO.StringIO()
         # urlからスクレイピングしてwatson生成
-        watson.main(url,_file,selector)
+        watson.main(url,_file)
 
         # モデル状態更新
         url_data.state = "active" # 終了フラグ上げる

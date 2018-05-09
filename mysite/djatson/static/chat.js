@@ -31,9 +31,21 @@ function call_watson(question,listener){
     })
     .done(function(data){
         /* 呼び出しもとに通知*/
-        str = data.response.replace(/\r?\n/g,"<BR>").replace(/\\n/g,"<BR>")
-        listener.update(AutoLink(str));
+        str = data.response.replace(/(\r?\n)+|\n+/g,"<BR>").replace(/(<BR>)+|(<br>)+/g,"<BR>")
+        var joined = "";
+        str.split("以下を参照してください<BR>").forEach(function(s){
+            if (s){
+                joined += "以下を参照してください<BR>" ;
+                if (s.startsWith("<")){ // tagから始まるならiframe化
+                    s = s.replace(/<BR>/g,"").replace(/\&/g,"&amp;").replace(/\"/g,"&quot;")
+                    joined += '<iframe style="width:100%;height:300px;" srcdoc="' + s +'"></iframe>' ;
+                } else { // 普通に追加
+                    joined += s;
+                }
+            }
+        })
 
+        listener.update(AutoLink(joined));
         console.log(data);
     })
     .fail(function(data,e){
