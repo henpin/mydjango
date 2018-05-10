@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 # general
-from django.shortcuts import render
 from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
 # Models
@@ -130,4 +129,4 @@ admin.site.register(FormData, FormDataAdmin)
 admin.site.register(LogManageData, LogManageDataAdmin)
 
 # ヘッダ編集
-admin.AdminSite.site_header = u"Djangollaデモサイト"
+admin.AdminSite.site_header = u"Django!!!"
