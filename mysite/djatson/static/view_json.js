@@ -57,6 +57,7 @@ var parseJSON = function(json){
         alert("[ERROR] Wrong JSON Format\n\n" + e);
         console.debug(json);
     }
+
     return obj;
 }
 

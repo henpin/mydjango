@@ -83,7 +83,7 @@ def call_conversation(req):
             return HttpResponse("fail")
 
         # ワトソンインターフェイスで会話
-        res = WATSON.talk(_input,ws_id,"natural",max_=3)
+        res = WATSON.talk(_input,ws_id,"natural",max_=5)
 
         # jsonにして返す
         _json = json.dumps({ "response" : res.decode("utf-8") },ensure_ascii=False)
@@ -108,7 +108,7 @@ def get_view_json_js(req, name):
     """ jsonビュアーJSの生成 """
     # データ取得
     url_data = get_object_or_404(URLData, name=name)
-    json_data = url_data.json.replace(u"\\",u"\\\\")
+    json_data = url_data.json.replace(u"\\",u"\\\\").replace(u"'",u"\\'")
 
     # JS生成
     with open(TEMPLATE_JSON_JS_PATH) as f :
