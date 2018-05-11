@@ -47,7 +47,7 @@ function insertChat(who, text, time){
         function(){                        
             $("ul").append(control).scrollTop($("ul").prop('scrollHeight'));
         }, time);
-    
+
 }
 
 function resetChat(){
