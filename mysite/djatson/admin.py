@@ -22,7 +22,7 @@ class URLDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     actions = [
     ]
     # 並べる
-    list_display = ("url","name","state","ws_id")
+    list_display = ("url","name","state","ws_id","description")
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """

@@ -32,10 +32,12 @@ function call_watson(question,listener){
     .done(function(data){
         /* 呼び出しもとに通知*/
         str = data.response.replace(/(\r?\n)+|\n+/g,"<BR>").replace(/(<BR>)+|(<br>)+/g,"<BR>")
-        var joined = "";
+        var joined = "以下を参照してください<BR>";
+        var add2joined = function(str){ joined += ( "<li>" +str +"</li>" ); }
+        /* マッチングした候補ごとに処理 */
         str.split("以下を参照してください<BR>").forEach(function(s){
             if (s){
-                joined += "以下を参照してください<BR>" ;
+                //joined += "以下を参照してください<BR>" ;
                 if (s.startsWith("<")){ // tagから始まるならiframe化
                     s = s.replace(/<BR>/g,"").replace(/\&/g,"&amp;").replace(/\"/g,"&quot;")
                     joined += '<iframe style="width:100%;height:300px;" srcdoc="' + s +'"></iframe>' ;
