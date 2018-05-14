@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^polls/',include("polls.urls")),
     url(r'^djangolla/',include("djangolla.urls")),
     url(r'^djatson/',include("djatson.urls")),
+    url(r'^scrango/',include("scrango.urls")),
 ]

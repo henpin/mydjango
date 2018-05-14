@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     'djangolla.apps.DjangollaConfig',
     'djatson.apps.DjatsonConfig',
+    'scrango.apps.ScrangoConfig',
     'bootstrap_admin', # commentout if theme not installed
     'bootstrap4', # commentout if theme not installed
     'django_admin_row_actions', # commentout if theme not installed
