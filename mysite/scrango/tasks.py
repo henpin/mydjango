@@ -4,8 +4,7 @@ from celery import shared_task
 from .models import CrawlerData, ScraperData, ResultData
 
 import StringIO
-from command_node_scraper import CommandNodeScraper
-from command_node_tree import CommandNode, Command
+from command_node_scraper import CommandNodeScraper, ScraperCommand
 
 @shared_task
 def do_scrape(crawler_data):
@@ -14,8 +13,7 @@ def do_scrape(crawler_data):
     url = crawler_data.url
     
     # コマンドノード作る 
-    #root_command = Command(None)
-    root = CommandNode("root",None)
+    root = ScraperCommand("root",None)
 
     # クローラーに関連づいたすべてのスクレイパ情報からコマンドツリー作る
     tmp_dict = dict() # { scraper_data : commandNode }
@@ -27,34 +25,12 @@ def do_scrape(crawler_data):
         #master_scraper = scraper_data.master_scraper
 
         # コマンド組み立て
-        # Todo : tag[0]とかやめて
-        def command(tag):
-            try:
-                if target == "html" :
-                    pass
-                elif target == "text" :
-                    return tag[0].get_text()
-                elif target == "src":
-                    return tag[0]["src"]
-                elif target == "href":
-                    return tag[0]["href"]
-
-            except :
-                pass # もみ消し
-
+        command = gen_command(target)
         # フィルタラ組み立て
-        def filterer(tag):
-            try:
-                # セレクトする
-                return tag.select(selector) 
+        filterer = gen_filterer(selector)
 
-            except :
-                return # もみ消し
-
-        # コマンド起こす
-        commandOBj = Command(command,filterer)
-        # コマンドノード化して一時保存
-        tmp_dict[name] = CommandNode(name,commandOBj)
+        # コマンド起こして一時保管
+        tmp_dict[name] = ScraperCommand(name,command,filterer)
         
     # 関連付け
     for key,val in tmp_dict.items():
@@ -85,4 +61,35 @@ def do_scrape(crawler_data):
     # 保存
     resultObj.save()
 
+
+def gen_command(target):
+    """ コマンド作り出す"""
+    def command(tag):
+        try:
+            if target == "html" :
+                pass
+            elif target == "text" :
+                return tag[0].get_text()
+            elif target == "src":
+                return tag[0]["src"]
+            elif target == "href":
+                return tag[0]["href"]
+
+        except :
+            pass # もみ消し
+
+    return command
+
+
+def gen_filterer(selector):
+    """ フィルタラ作り出す"""
+    def filterer(tag):
+        try:
+            # セレクトする
+            return tag.select(selector)
+
+        except :
+            return tag # もみ消し
+
+    return filterer
 
