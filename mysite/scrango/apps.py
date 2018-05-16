@@ -12,4 +12,6 @@ class ScrangoConfig(AppConfig):
 def gen_url(context, pattern):
     """ URL生成 """
     if context == "scrape":
-        return URL_PREFIX +"/kaminaga/scrape/"+pattern
+        return URL_PREFIX +"/kaminaga/scrape/" +pattern
+    elif context == "view_result":
+        return URL_PREFIX +"/kaminaga/view_result/" +pattern

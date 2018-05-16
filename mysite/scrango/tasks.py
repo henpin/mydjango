@@ -5,13 +5,41 @@ from .models import CrawlerData, ScraperData, ResultData
 
 import StringIO
 from command_node_scraper import CommandNodeScraper, ScraperCommand
+import urlparse
+
 
 @shared_task
 def do_scrape(crawler_data):
     """ スクレイピングをする """
     # スクレイピングデータ取得
     url = crawler_data.url
-    
+
+    # コマンドノードツリー生成
+    root = gen_commandNodeTree(crawler_data)
+
+    # スクレイピング
+    scraper = CommandNodeScraper()
+    scraper.parse_fromURL(url)
+    json = scraper.call(root,"json")
+
+    # 結果の保存
+    # リザルトオブジェクト
+    resultObj = ResultData(
+        crawler = crawler_data,
+        json = json,
+        result = "success"
+        )
+
+    # 保存
+    resultObj.save()
+
+    # 状態変遷
+    crawler_data.state = "active"
+    crawler_data.save()
+
+
+def gen_commandNodeTree(crawler_data):
+    """ クローラーからコマンドノード生成す"""
     # コマンドノード作る 
     root = ScraperCommand("root",None)
 
@@ -22,10 +50,16 @@ def do_scrape(crawler_data):
         name = scraper_data.name
         selector = scraper_data.selector
         target = scraper_data.target
+        # 再帰クローラー検索
+        r_crawler_name = scraper_data.crawler_name
+        if r_crawler_name :
+            r_crawler = CrawlerData.objects.get(name=r_crawler_name) 
+        else :
+            r_crawler = None
         #master_scraper = scraper_data.master_scraper
 
         # コマンド組み立て
-        command = gen_command(target)
+        command = gen_command(target,r_crawler,crawler_data.url)
         # フィルタラ組み立て
         filterer = gen_filterer(selector)
 
@@ -45,27 +79,14 @@ def do_scrape(crawler_data):
         else :
             root.add_child(val)
 
-    # スクレイピング
-    scraper = CommandNodeScraper()
-    scraper.parse_fromURL(url)
-    json = scraper.call(root,"json")
-
-    # 結果の保存
-    # リザルトオブジェクト
-    resultObj = ResultData(
-        crawler = crawler_data,
-        json = json,
-        result = "success"
-        )
-
-    # 保存
-    resultObj.save()
+    return root
 
 
-def gen_command(target):
+def gen_command(target, crawler=None, url_prefix=""):
     """ コマンド作り出す"""
     def command(tag):
         try:
+            # 情報抽出
             if target == "html" :
                 pass
             elif target == "text" :
@@ -73,9 +94,25 @@ def gen_command(target):
             elif target == "src":
                 return tag[0]["src"]
             elif target == "href":
+                href = tag[0]["href"]
+                # 再帰クローラーがあれば再帰処理
+                if crawler and href :
+                    # 絶対パス化
+                    href_abs = urlparse.urljoin(url_prefix, href)
+                    print href_abs
+                    # ノードツリー生成
+                    root = gen_commandNodeTree(crawler)
+                    # スクレイパ生成
+                    scraper = CommandNodeScraper()
+                    scraper.parse_fromURL(href_abs)
+                    # スクレイピング
+                    result = scraper.call(root)
+                    print "Done"
+                    return result
+
                 return tag[0]["href"]
 
-        except :
+        except IndexError, KeyError:
             pass # もみ消し
 
     return command

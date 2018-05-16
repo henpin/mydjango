@@ -32,17 +32,22 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         ScraperDataInline,
         ResultDataInline
         ]
-    #list_display = ("form_name")
+    list_display = ("name","url","state")
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """
-        url = gen_url("scrape",item.name)
+        url_for_scrape = gen_url("scrape",item.name)
+        url_for_view = gen_url("view_result",item.name)
         # 行埋め込みアクション
         row_actions = [
             {
                 'label': 'スクレピング開始',
-                'url': url
+                'url': url_for_scrape
             },
+            {
+                'label': '結果を見る',
+                'url': url_for_view
+            }
         ]
 
         return row_actions

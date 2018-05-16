@@ -1,0 +1,56 @@
+{% load static %}
+<html>
+<head>
+    <title>JSON眺める</title>
+
+    <!-- css -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
+    <!-- js -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+    <!-- view json css -->
+    <link href="{% static 'view_json.css' %}" rel="stylesheet"></link>
+    <!-- view json js -->
+    <script src="/scrango/kaminaga/view_result/{{ name }}.js"></script>
+
+    <!-- hot -->
+    <link href="{% static 'hot.css' %}" rel="stylesheet"></link>
+    <script src="{% static 'hot.js' %}""></script>
+    <script src="{% static 'hotutils2.js' %}""></script>
+    <script type="text/javascript">
+        $(function(){
+            var hot = initializeHOT("hot",{height : 500}); // 初期化
+            // render hot
+            $("#go").click(function(){
+                var key = $("#hot-input").val();
+                var data = JSON.parse(JSONDATA)[key];
+                hot.loadData(data);
+            });
+
+            // csv
+            $("#csv").click(function(){
+                var csv = "";
+                hot.getData().forEach(function(ls){
+                    csv += ls.join(",") +"\n";
+                })
+                $("#csv_result").val(csv).show();
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <h1>表で眺める</h1>
+    <input type="text" id="hot-input" placeholder="表にするキー"/>
+    <input type="button" value="Go" id="go"/>
+    <input type="button" value="CSV" id="csv"/>
+    <br><textarea id="csv_result" style="display:none;width:1000px;height:300px"></textarea>
+    <div id="hot"></div>
+
+    <h1>JSONを眺める</h1>
+    <a class="btn btn-default col-sm-12" href="#" onclick="javascript:window.history.back(-1);return false;">戻る</a>
+    <div id="result"></div>
+</body>
+</html>
