@@ -22,10 +22,11 @@
     <script type="text/javascript">
         $(function(){
             var hot = initializeHOT("hot",{height : 500}); // 初期化
+            var parsedData = JSON.parse(JSONDATA);
             // render hot
             $("#go").click(function(){
                 var key = $("#hot-input").val();
-                var data = JSON.parse(JSONDATA)[key];
+                var data = parsedData[key];
                 hot.loadData(data);
             });
 
@@ -36,6 +37,16 @@
                     csv += ls.join(",") +"\n";
                 })
                 $("#csv_result").val(csv).show();
+            });
+
+            // render hot
+            $(".key").click(function(){
+                var key = $(this).text();
+                var data = parsedData[key];
+                if (data && Array.isArray(data)){
+                    hot.loadData(data);
+                    hot.render();
+                }
             });
         });
     </script>

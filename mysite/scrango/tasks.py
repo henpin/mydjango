@@ -6,10 +6,16 @@ from .models import CrawlerData, ScraperData, ResultData
 import StringIO
 from command_node_scraper import CommandNodeScraper, ScraperCommand
 import urlparse
+import json
+
+from slack_interface import SlackInterface
+
+# スラックインターフェイス
+SLACK = SlackInterface(username="scrango")
 
 
 @shared_task
-def do_scrape(crawler_data):
+def do_scrape(crawler_data,notification=None):
     """ スクレイピングをする """
     # スクレイピングデータ取得
     url = crawler_data.url
@@ -20,13 +26,13 @@ def do_scrape(crawler_data):
     # スクレイピング
     scraper = CommandNodeScraper()
     scraper.parse_fromURL(url)
-    json = scraper.call(root,"json")
+    jsoned = scraper.call(root,"json")
 
     # 結果の保存
     # リザルトオブジェクト
     resultObj = ResultData(
         crawler = crawler_data,
-        json = json,
+        json = jsoned,
         result = "success"
         )
 
@@ -36,6 +42,16 @@ def do_scrape(crawler_data):
     # 状態変遷
     crawler_data.state = "active"
     crawler_data.save()
+
+    # 通知
+    if notification == "slack":
+        # そのままJSONダンプ
+        data = json.dumps(
+            scraper.get_result(),
+            ensure_ascii = False,
+            indent = 4
+            )
+        SLACK.send_message(data)
 
 
 def gen_commandNodeTree(crawler_data):
@@ -129,4 +145,16 @@ def gen_filterer(selector):
             return tag # もみ消し
 
     return filterer
+
+
+@shared_task
+def apply_shcedule():
+    """ スケジューリング処理 """
+    # 全クローラを抜いて処理
+    for crawler_data in CrawlerData.objects.all() :
+        if crawler_data.repetition :
+            # クローリングする
+            do_scrape.delay(crawler_data,notification="slack")
+            print "do delay"
+
 

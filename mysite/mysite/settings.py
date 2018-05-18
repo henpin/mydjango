@@ -19,6 +19,7 @@ Addtional apps :
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,7 +44,7 @@ INSTALLED_APPS = [
     'djatson.apps.DjatsonConfig',
     'scrango.apps.ScrangoConfig',
     'bootstrap_admin', # commentout if theme not installed
-    'bootstrap4', # commentout if theme not installed
+    #'bootstrap4', # commentout if theme not installed
     'django_admin_row_actions', # commentout if theme not installed
     'django.contrib.admin',
     'django.contrib.auth',
@@ -136,5 +137,19 @@ STATIC_URL = '/static/'
 
 # setting django-celery
 import djcelery
+
+# スケジューリング
+CELERYBEAT_SCHEDULE = {
+    'add-every-30-seconds': {
+        'task': 'scrango.tasks.apply_shcedule',
+        'schedule': timedelta(seconds=30),
+        #'args': (16, 16)
+    },
+}
+
 djcelery.setup_loader()
+
+
+
+
 

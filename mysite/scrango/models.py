@@ -19,10 +19,21 @@ class CrawlerData(models.Model):
         ("error","異常"),
     ) # 状態リスト
 
+    REPETITION_INTERVAL_LIST = (
+        ("","OFF"),
+        ("30sec","30秒"),
+        ("1min","1分"),
+        ("10min","10分"),
+        ("30min","30分"),
+        ("1hour","1時間"),
+        ("12hour","12時間"),
+    ) # 繰り返し秒数
+
     attribute = models.CharField("属性", max_length=64, choices=ATTR_LIST, default="master") # 属性
     name = models.CharField("名前",max_length=256)
     url = models.CharField("URL",max_length=512, blank=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
+    repetition = models.CharField("定期実行", max_length=64, choices=REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
 
     def __unicode__(self):
         return self.name
