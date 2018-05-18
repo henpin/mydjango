@@ -13,27 +13,44 @@ class CrawlerData(models.Model):
     ) # 属性
 
     STATE_LIST = (
-        ("pending","初期化待ち"),
-        ("initializing","初期化中"),
+        ("executing","実行中"),
         ("active","正常"),
         ("error","異常"),
     ) # 状態リスト
 
     REPETITION_INTERVAL_LIST = (
         ("","OFF"),
-        ("30sec","30秒"),
-        ("1min","1分"),
-        ("10min","10分"),
-        ("30min","30分"),
-        ("1hour","1時間"),
-        ("12hour","12時間"),
+        ("30","30秒"),
+        ("60","1分"),
+        ("300","5分"),
+        ("600","10分"),
+        ("1800","30分"),
+        ("3600","1時間"),
+        ("10800","3時間"),
+        ("21600","6時間"),
+        ("43200","12時間"),
     ) # 繰り返し秒数
+
+    SCREENSHOT_SIZE_LIST = (
+        ("","OFF"),
+        ("(1280px,720px)","スマホサイズ(720px)"),
+        ("(1280px,980px)","PCサイズ(980px)"),
+    ) # スクリーンショットサイズ
+
+    NOTIFICATION_LIST = (
+        ("","通知しない"),
+        ("slack","slack"),
+        ("chatwork","chatwork"),
+    ) # 通知先
 
     attribute = models.CharField("属性", max_length=64, choices=ATTR_LIST, default="master") # 属性
     name = models.CharField("名前",max_length=256)
     url = models.CharField("URL",max_length=512, blank=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
     repetition = models.CharField("定期実行", max_length=64, choices=REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
+    screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
+    notification = models.CharField("通知先", choices=NOTIFICATION_LIST ,max_length=64, blank=True) # 通知先
+    last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True) # 実行日時
 
     def __unicode__(self):
         return self.name
@@ -53,6 +70,7 @@ class ScraperData(models.Model):
     master_scraper = models.ForeignKey("self",verbose_name="これを見つけたら実行",null=True,blank=True) # 従属的スクレイパ
     name = models.CharField("名前",max_length=256)
     crawler_name = models.CharField("クローラー名",max_length=256,blank=True) # 再帰的クローラー名
+    valid = models.BooleanField("有効", default=True) # 有効/無効
 
     def __unicode__(self):
         return self.name
@@ -68,6 +86,7 @@ class ResultData(models.Model):
     datetime = models.DateTimeField("実行時間",default=timezone.now) # 実行時間
     json = models.TextField(blank=True, editable=True) # 解析結果JSON
     result = models.CharField("可否", max_length=64, choices=RESULT_LIST, default="", blank=True) # 属性
+    screenshot = models.ImageField(upload_to="images/",null=True,blank=True)
 
     class Meta:
         ordering = ('-datetime',)

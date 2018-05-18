@@ -22,11 +22,12 @@ def do_scrape(req,name):
 
     # 状態変遷
     if crawler_data.url :
-        crawler_data.state = "initializing"
-        crawler_data.save()
-
         # スクレイピング開始
         tasks.do_scrape.delay(crawler_data)
+    else :
+        # 状態変遷
+        crawler_data.state = "error"
+        crawler_data.save()
 
     # adminにリダイレクト
     return HttpResponseRedirect('/admin/scrango/crawlerdata/')

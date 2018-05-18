@@ -42,13 +42,55 @@
             // render hot
             $(".key").click(function(){
                 var key = $(this).text();
-                var data = parsedData[key];
-                if (data && Array.isArray(data)){
-                    hot.loadData(data);
+
+                // 対象データ探す君
+                function find_target(data){
+                    // 対象データ
+                    var _data = data[key];
+
+                    if (_data && Array.isArray(_data)){
+                        // 自分自身が配列データなら読み込み
+                        console.log(_data)
+                        return _data;
+                    } else if (_data && Array.isArray(_data["root"]) ) {
+                        // rootは特別扱い
+                        return _data["root"];
+                    } else {
+                        // データが無ければ再帰的に検索かける
+                        result = [];
+
+                        // データあれば再帰捜索
+                        Object.keys(data).forEach(function(key){
+                            console.log(key)
+                            // リストならくるくる
+                            if ( Array.isArray(data[key]) ){
+                                data[key].forEach(function(dict){
+                                    // 再帰検索
+                                    _result = find_target(dict);
+                                    // 結果があれば保存
+                                    if (_result){ result = result.concat(_result); }
+                                });
+                            }
+                        });
+
+                        // なんか結果あれば返す
+                        if (result.length){
+                            return result;
+                        }
+                    }
+                }
+                    
+                // データ探す君で探す
+                var result_data = find_target(parsedData);
+                console.log(result_data)
+                // データがあれば読む
+                if (result_data && result_data.length){
+                    hot.loadData(result_data);
                     hot.render();
                 }
             });
         });
+
     </script>
 
 </head>
