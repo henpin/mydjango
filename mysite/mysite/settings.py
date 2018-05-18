@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'djangolla.apps.DjangollaConfig',
     'djatson.apps.DjatsonConfig',
     'scrango.apps.ScrangoConfig',
+    'jet.dashboard', # django-jet
     'jet', # django-jet
     #'bootstrap_admin', # commentout if theme not installed
     'django_admin_row_actions', # commentout if theme not installed

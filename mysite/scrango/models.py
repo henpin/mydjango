@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.utils import timezone
+from django.template.defaultfilters import truncatechars
 
 # Create your models here.
 class CrawlerData(models.Model):
@@ -49,6 +50,11 @@ class CrawlerData(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def short_url(self):
+        """ 短いURL """
+        return truncatechars(self.url, 80)
+
 
 class ScraperData(models.Model):
     """ スクレイパーデータ"""

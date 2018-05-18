@@ -21,7 +21,7 @@ class ResultDataInline(admin.TabularInline):
     """ スクレイパーデータテーブル """
     model = ResultData
     extra = 0
-    max_num = 100
+    max_num = 50
 
 
 class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
@@ -34,7 +34,7 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         ScraperDataInline,
         ResultDataInline
         ]
-    list_display = ("name","description","url","state","repetition","screenshot","notification","last_execute_time")
+    list_display = ("name","description","short_url","state","repetition","screenshot","notification","last_execute_time")
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """
