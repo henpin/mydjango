@@ -7,11 +7,6 @@ from django.utils import timezone
 # Create your models here.
 class CrawlerData(models.Model):
     """ クローラーデータ """
-    ATTR_LIST = (
-        ("master","マスター"),
-        ("slave","スレーブ"),
-    ) # 属性
-
     STATE_LIST = (
         ("executing","実行中"),
         ("active","正常"),
@@ -33,24 +28,24 @@ class CrawlerData(models.Model):
 
     SCREENSHOT_SIZE_LIST = (
         ("","OFF"),
-        ("(1280px,720px)","スマホサイズ(720px)"),
-        ("(1280px,980px)","PCサイズ(980px)"),
+        ("(1280px,720px)","スマホサイズ"),
+        ("(1280px,980px)","PCサイズ"),
     ) # スクリーンショットサイズ
 
     NOTIFICATION_LIST = (
-        ("","通知しない"),
+        ("","未設定"),
         ("slack","slack"),
         ("chatwork","chatwork"),
     ) # 通知先
 
-    attribute = models.CharField("属性", max_length=64, choices=ATTR_LIST, default="master") # 属性
     name = models.CharField("名前",max_length=256)
+    description = models.CharField("説明", blank=True, null=True, max_length=1024)
     url = models.CharField("URL",max_length=512, blank=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
     repetition = models.CharField("定期実行", max_length=64, choices=REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
     screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
     notification = models.CharField("通知先", choices=NOTIFICATION_LIST ,max_length=64, blank=True) # 通知先
-    last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True) # 実行日時
+    last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
 
     def __unicode__(self):
         return self.name

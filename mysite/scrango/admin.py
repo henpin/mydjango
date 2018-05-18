@@ -34,7 +34,7 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         ScraperDataInline,
         ResultDataInline
         ]
-    list_display = ("name","url","state","repetition","screenshot","notification","last_execute_time")
+    list_display = ("name","description","url","state","repetition","screenshot","notification","last_execute_time")
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """

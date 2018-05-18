@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 ---------------------------------------------------------------------
 Addtional apps :
 * bootstrap_admin : admin装飾テーマ
-* bootstrap4 : admin画面にbootstrap4当ててくれる?
 * django_admin_row_actions : actionを行ごとに表示してくれる
     * https://github.com/DjangoAdminHackers/django-admin-row-actions
+* jet : admin装飾テーマ
 """
 
 import os
@@ -43,8 +43,8 @@ INSTALLED_APPS = [
     'djangolla.apps.DjangollaConfig',
     'djatson.apps.DjatsonConfig',
     'scrango.apps.ScrangoConfig',
-    'bootstrap_admin', # commentout if theme not installed
-    #'bootstrap4', # commentout if theme not installed
+    'jet', # django-jet
+    #'bootstrap_admin', # commentout if theme not installed
     'django_admin_row_actions', # commentout if theme not installed
     'django.contrib.admin',
     'django.contrib.auth',
@@ -154,5 +154,6 @@ djcelery.setup_loader()
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-
+# JET
+#JET_SIDE_MENU_COMPACT = True
 

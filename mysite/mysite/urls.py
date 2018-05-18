@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     url(r'^polls/',include("polls.urls")),
     url(r'^djangolla/',include("djangolla.urls")),
     url(r'^djatson/',include("djatson.urls")),
