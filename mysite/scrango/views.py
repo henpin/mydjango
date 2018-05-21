@@ -22,6 +22,9 @@ def do_scrape(req,name):
 
     # 状態変遷
     if crawler_data.url :
+        # 状態変遷
+        crawler_data.state = "executing" # 状態-> エラー
+        crawler_data.save()
         # スクレイピング開始
         tasks.do_scrape.delay(crawler_data)
     else :
