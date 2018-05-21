@@ -1,21 +1,16 @@
-[INFO  - 2018-05-18T15:31:26.396Z] GhostDriver - Main - running on port 62873
-[INFO  - 2018-05-18T15:31:27.494Z] Session [87dc0f10-5ab0-11e8-b583-336dd7fbc471] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1","webSecurityEnabled":true}
-[INFO  - 2018-05-18T15:31:27.494Z] Session [87dc0f10-5ab0-11e8-b583-336dd7fbc471] - page.customHeaders:  - {}
-[INFO  - 2018-05-18T15:31:27.494Z] Session [87dc0f10-5ab0-11e8-b583-336dd7fbc471] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.1.1","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"}}
-[INFO  - 2018-05-18T15:31:27.494Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: 87dc0f10-5ab0-11e8-b583-336dd7fbc471
-[ERROR - 2018-05-18T15:31:28.978Z] Session [87dc0f10-5ab0-11e8-b583-336dd7fbc471] - page.onError - msg: TypeError: undefined is not an object (evaluating 'height.replace')
+[INFO  - 2018-05-21T01:19:12.801Z] GhostDriver - Main - running on port 56034
+[INFO  - 2018-05-21T01:19:13.933Z] Session [f91f1880-5c94-11e8-a6d1-c17f84693379] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1","webSecurityEnabled":true}
+[INFO  - 2018-05-21T01:19:13.934Z] Session [f91f1880-5c94-11e8-a6d1-c17f84693379] - page.customHeaders:  - {}
+[INFO  - 2018-05-21T01:19:13.934Z] Session [f91f1880-5c94-11e8-a6d1-c17f84693379] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.1.1","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"windows-7-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"}}
+[INFO  - 2018-05-21T01:19:13.934Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: f91f1880-5c94-11e8-a6d1-c17f84693379
+[ERROR - 2018-05-21T01:19:15.331Z] Session [f91f1880-5c94-11e8-a6d1-c17f84693379] - page.onError - msg: TypeError: undefined is not a constructor (evaluating '$(".o_navigation > ul").tabs({event: 'mouseover' , fx:{opacity: "toggle"}})')
 
   phantomjs://platform/console++.js:263 in error
-[ERROR - 2018-05-18T15:31:28.978Z] Session [87dc0f10-5ab0-11e8-b583-336dd7fbc471] - page.onError - stack:
-  (anonymous function) (https://develop.nebit-tech.com/pmark_dev/js/chatqa.js:180)
-  i (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:2)
-  add (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:2)
-  ready (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:2)
-  mainMessage (https://develop.nebit-tech.com/pmark_dev/js/chatqa.js:176)
-  (anonymous function) (https://develop.nebit-tech.com/pmark_dev/js/chatqa.js:49)
-  i (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:2)
-  fireWith (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:2)
-  y (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:4)
-  c (https://develop.nebit-tech.com/pmark_dev/js/jquery-1.12.4.min.js:4)
+[ERROR - 2018-05-21T01:19:15.332Z] Session [f91f1880-5c94-11e8-a6d1-c17f84693379] - page.onError - stack:
+  (anonymous function) (http://www.okadaya-shop.jp/1/products/list.php?category_id=2927:25)
+  (anonymous function) (http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js:19)
+  each (http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js:12)
+  ready (http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js:19)
+  (anonymous function) (http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js:19)
 
   phantomjs://platform/console++.js:263 in error

@@ -31,9 +31,8 @@ def do_scrape(crawler_data):
     """ スクレイピングをする """
     try:
         # 状態変遷
-        crawler_data.state = "executing"
-        # 実行日時を保存
-        crawler_data.last_execute_time = timezone.now()
+        crawler_data.state = "executing" # 状態-> 実行中
+        crawler_data.last_execute_time = timezone.now() # 最終実行時間-> 今
         crawler_data.save()
 
         # スクレイピングデータ取得
@@ -69,10 +68,7 @@ def do_scrape(crawler_data):
             json = jsoned,
             result = "success",
             screenshot = filename
-            )
-
-        # 保存
-        resultObj.save()
+            ).save() # 保存
 
         # 状態変遷
         crawler_data.state = "active"
@@ -98,7 +94,7 @@ def do_scrape(crawler_data):
 
     except :
         # 状態変遷
-        crawler_data.state = "error"
+        crawler_data.state = "error" # 状態-> エラー
         crawler_data.save()
 
 def gen_commandNodeTree(crawler_data):

@@ -26,7 +26,7 @@ def do_scrape(req,name):
         tasks.do_scrape.delay(crawler_data)
     else :
         # 状態変遷
-        crawler_data.state = "error"
+        crawler_data.state = "error" # 状態-> エラー
         crawler_data.save()
 
     # adminにリダイレクト
