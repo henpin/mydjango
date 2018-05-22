@@ -56,6 +56,24 @@ class CrawlerData(models.Model):
         return truncatechars(self.url, 80)
 
 
+class ActionData(models.Model):
+    """ アクションデータ"""
+    ACTION_TYPE_LIST = (
+        ("","何もしない"),
+        ("input","入力"),
+        ("click","クリック"),
+    )
+    crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
+    selector = models.CharField("操作対象name属性",max_length=256)
+    action_type = models.CharField("アクションタイプ", max_length=64, choices=ACTION_TYPE_LIST, default="") # アクションの詳細
+    content = models.CharField("入力内容", max_length=64, blank=True, null=True) # 入力内容
+    valid = models.BooleanField("有効", default=True) # 有効/無効
+    description = models.CharField("説明", blank=True, null=True, max_length=256)
+
+    def __unicode__(self):
+        return self.description
+
+
 class ScraperData(models.Model):
     """ スクレイパーデータ"""
     TARGET_LIST = (

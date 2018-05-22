@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
 # Models
-from .models import CrawlerData, ScraperData, ResultData
+from .models import CrawlerData, ScraperData, ResultData, ActionData
 # modules
 from .apps import gen_url
 # extenstions
@@ -21,7 +21,12 @@ class ResultDataInline(admin.TabularInline):
     """ スクレイパーデータテーブル """
     model = ResultData
     extra = 0
-    max_num = 50
+    max_num = 20
+
+class ActionDataInline(admin.TabularInline):
+    """ アクションデータテーブル"""
+    model = ActionData
+    extra = 5
 
 
 class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
@@ -32,7 +37,8 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     # 並べる
     inlines = [
         ScraperDataInline,
-        ResultDataInline
+        ResultDataInline,
+        ActionDataInline
         ]
     list_display = ("name","description","short_url","state","repetition","screenshot","notification","last_execute_time")
 

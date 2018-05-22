@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from celery import shared_task
-from .models import CrawlerData, ScraperData, ResultData
+from .models import CrawlerData, ScraperData, ResultData, ActionData
 from django.conf import settings
 from django.utils import timezone
 
@@ -16,7 +16,7 @@ import datetime
 from slack_interface import SlackInterface
 from chatwork_interface import ChatworkInterface
 from template_system import TemplateSystem
-import selenium_loader
+from selenium_loader import SeleniumLoader, FormAction
 
 
 # スラックインターフェイス
@@ -40,26 +40,45 @@ def do_scrape(crawler_data):
         screenshot_size = crawler_data.screenshot # スクリーンショット取るか否か
         notification = crawler_data.notification # 通知先
 
+        # クローラーからアクション抽出
+        action_list = [
+            FormAction( # アクションデータをフォームアクション化
+                a.selector
+                ,a.action_type
+                ,a.content
+            ) for a in ActionData.objects.filter(crawler=crawler_data) if a.valid # only valid
+        ]
+
+        # JSパーシング済みHTML取得
+        with SeleniumLoader() as selen :
+            # url読む
+            selen.load_url(url)
+            # アクション処理
+            selen.apply_formActions(*action_list)
+            # HTML抜く
+            html = selen.get_source()
+
+            # スクリーンショットとっちゃう
+            if screenshot_size :
+                # ファイル名作る
+                _uuid = str(uuid.uuid4())[:10]
+                media_path = settings.MEDIA_ROOT
+                filename = os.path.join(media_path, _uuid +"_screenshot.png")
+                # スクリーンショットサイズの解析
+                x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
+                # とる
+                selen.set_size(x,y).save_screenshot(filename)
+
+            else :
+                filename = None # ダミー
+
         # コマンドノードツリー生成
         root = gen_commandNodeTree(crawler_data)
 
         # スクレイピング
         scraper = CommandNodeScraper()
-        scraper.parse_fromURL(url)
+        scraper.parse(html)
         jsoned = scraper.call(root,"json")
-
-        # スクリーンショット取る
-        if screenshot_size :
-            # ファイル名作る
-            _uuid = str(uuid.uuid4())[:10]
-            media_path = settings.MEDIA_ROOT
-            filename = os.path.join(media_path, _uuid +"_screenshot.png")
-            # スクリーンショットサイズの解析
-            x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
-            # セレニアムでスクリーンショットとる
-            selenium_loader.screenshot_from_selenium(url,filename,x,y) # パシャ
-        else :
-            filename = None
 
         # 結果の保存
         # リザルトオブジェクト
@@ -75,27 +94,35 @@ def do_scrape(crawler_data):
         crawler_data.save()
 
         # 通知
-        if notification == "slack":
-            # そのままJSONダンプ
-            data = json.dumps(
-                scraper.get_result(),
-                ensure_ascii = False,
-                indent = 4
-                )
-            SLACK.send_message(data,filename)
-        elif notification == "chatwork":
-            # そのままJSONダンプ
-            data = json.dumps(
-                scraper.get_result(),
-                ensure_ascii = False,
-                indent = 4
-                )
-            CHATWORK.send_message(data)
+        notificate_it(notification,scraper,filename)
 
     except :
         # 状態変遷
         crawler_data.state = "error" # 状態-> エラー
         crawler_data.save()
+        import traceback; traceback.print_exc()
+
+
+def notificate_it(notification,scraper,filename):
+    """ 通知する """
+    if notification == "slack":
+        # そのままJSONダンプ
+        data = json.dumps(
+            scraper.get_result(),
+            ensure_ascii = False,
+            indent = 4
+            )
+        SLACK.send_message(data,filename)
+
+    elif notification == "chatwork":
+        # そのままJSONダンプ
+        data = json.dumps(
+            scraper.get_result(),
+            ensure_ascii = False,
+            indent = 4
+            )
+        CHATWORK.send_message(data)
+
 
 def gen_commandNodeTree(crawler_data):
     """ クローラーからコマンドノード生成す"""
