@@ -66,6 +66,7 @@ def do_scrape(crawler_data):
                 filename = os.path.join(media_path, _uuid +"_screenshot.png")
                 # スクリーンショットサイズの解析
                 x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
+                y = 1980 # 飛び出ちゃうのでprefix
                 # とる
                 selen.set_size(x,y).save_screenshot(filename)
 
@@ -176,7 +177,7 @@ def gen_command(target, crawler=None, url_prefix=""):
             if target == "html" :
                 pass
             elif target == "text" :
-                return tag[0].get_text()
+                return tag[0].get_text().strip()
             elif target == "src":
                 return tag[0]["src"]
             elif target == "href":
