@@ -66,7 +66,6 @@ def do_scrape(crawler_data):
                 filename = os.path.join(media_path, _uuid +"_screenshot.png")
                 # スクリーンショットサイズの解析
                 x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
-                y = 1980 # 飛び出ちゃうのでprefix
                 # とる
                 selen.set_size(x,y).save_screenshot(filename)
 
@@ -173,34 +172,41 @@ def gen_command(target, crawler=None, url_prefix=""):
     """ コマンド作り出す"""
     def command(tag):
         try:
-            # 情報抽出
-            if target == "html" :
-                pass
-            elif target == "text" :
-                return tag[0].get_text().strip()
-            elif target == "src":
-                return tag[0]["src"]
-            elif target == "href":
-                href = tag[0]["href"]
-                # 再帰クローラーがあれば再帰処理
-                if crawler and href :
-                    # 絶対パス化
-                    href_abs = urlparse.urljoin(url_prefix, href)
-                    print href_abs
-                    # ノードツリー生成
-                    root = gen_commandNodeTree(crawler)
-                    # スクレイパ生成
-                    scraper = CommandNodeScraper()
-                    scraper.parse_fromURL(href_abs)
-                    # スクレイピング
-                    result = scraper.call(root)
-                    print "Done"
-                    return result
+            result = []
+            # くるくるする
+            for _tag in tag :
+                # 情報抽出
+                if target == "html" :
+                    result.append( unicode(_tag) )
+                elif target == "text" :
+                    result.append( _tag.get_text().strip() )
+                elif target == "src":
+                    result.append( _tag["src"] )
+                elif target == "href":
+                    href = _tag["href"]
+                    # 再帰クローラーがあれば再帰処理
+                    if crawler and href :
+                        # 絶対パス化
+                        href_abs = urlparse.urljoin(url_prefix, href)
+                        print href_abs
+                        # ノードツリー生成
+                        root = gen_commandNodeTree(crawler)
+                        # スクレイパ生成
+                        scraper = CommandNodeScraper()
+                        scraper.parse_fromURL(href_abs)
+                        # スクレイピング
+                        result = scraper.call(root)
+                        print "HREF Done"
+                        return result
 
-                return tag[0]["href"]
+                    result.append( _tag["href"] )
+
+            # 返す
+            return result
 
         except IndexError, KeyError:
             pass # もみ消し
+
 
     return command
 

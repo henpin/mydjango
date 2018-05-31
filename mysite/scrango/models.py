@@ -77,6 +77,7 @@ class ActionData(models.Model):
 class ScraperData(models.Model):
     """ スクレイパーデータ"""
     TARGET_LIST = (
+        ("","見つけるだけ"),
         ("html","HTML"),
         ("text","本文"),
         ("src","src属性値"),
@@ -84,7 +85,7 @@ class ScraperData(models.Model):
     ) # 取得コンテンツチョイス
 
     selector = models.CharField("CSSセレクタ",max_length=256)
-    target = models.CharField("取得対象", max_length=64, choices=TARGET_LIST, default="html") # 属性
+    target = models.CharField("取得対象", max_length=64, choices=TARGET_LIST, default="html", blank=True, null=True) # 属性
     crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
     master_scraper = models.ForeignKey("self",verbose_name="これを見つけたら実行",null=True,blank=True) # 従属的スクレイパ
     name = models.CharField("名前",max_length=256)
