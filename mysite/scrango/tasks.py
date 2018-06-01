@@ -39,6 +39,7 @@ def do_scrape(crawler_data):
         url = crawler_data.url
         screenshot_size = crawler_data.screenshot # スクリーンショット取るか否か
         notification = crawler_data.notification # 通知先
+        user_agent = crawler_data.user_agent # ユーザーエージェント
 
         # クローラーからアクション抽出
         action_list = [
@@ -50,7 +51,7 @@ def do_scrape(crawler_data):
         ]
 
         # JSパーシング済みHTML取得
-        with SeleniumLoader() as selen :
+        with SeleniumLoader(user_agent) as selen :
             # url読む
             selen.load_url(url)
             # アクション処理

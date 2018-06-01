@@ -5,6 +5,15 @@ from django.db import models
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
 
+# User Agents
+UA_FF = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0' # FF
+UA_CHROME = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36 ' # chrome
+UA_IPAD = 'Mozilla/5.0 (iPad; CPU OS 11_2_1 like Mac OS X) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0 Mobile/15C153 Safari/604.1' # ipad
+UA_MAC = 'Mozilla/5.0 (Macintosh; U; PPC Mac OS X; ja-jp) AppleWebKit/85.7 (KHTML, like Gecko) Safari/85.6 ' # safari
+UA_ANDROID = 'Mozilla/5.0 (Android 4.4; Mobile; rv:41.0) Gecko/41.0 Firefox/41.0' # android
+UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_5 like Mac OS X) AppleWebKit/604.5.2 (KHTML, like Gecko) Version/11.0 Mobile/15D5046b Safari/604.1' # iphone
+
+
 # Create your models here.
 class CrawlerData(models.Model):
     """ クローラーデータ """
@@ -39,6 +48,16 @@ class CrawlerData(models.Model):
         ("chatwork","chatwork"),
     ) # 通知先
 
+    USERAGENT_LIST = (
+        (UA_FF,"自動"),
+        (UA_FF,"Firefox"),
+        (UA_CHROME,"GoogleChrome"),
+        (UA_IPAD,"Safari(ipad)"),
+        (UA_MAC,"Safari(mac)"),
+        (UA_ANDROID,"Firefox(Android)"),
+        (UA_IPHONE,"iphone")
+    ) # ユーザーエージェントリスト
+
     name = models.CharField("名前",max_length=256)
     description = models.CharField("説明", blank=True, null=True, max_length=1024)
     url = models.CharField("URL",max_length=512, blank=True)
@@ -47,6 +66,8 @@ class CrawlerData(models.Model):
     screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
     notification = models.CharField("通知先", choices=NOTIFICATION_LIST ,max_length=64, blank=True) # 通知先
     last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
+    user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=256, default=UA_FF) # 通知先
+    #proxy = models.CharField("プロキシサーバー", max_length=256, blank=True, null=True) # プロキシサーバー
 
     def __unicode__(self):
         return self.name
@@ -62,16 +83,20 @@ class ActionData(models.Model):
         ("","何もしない"),
         ("input","入力"),
         ("click","クリック"),
+        ("reload","リロード"),
+        ("enter_iframe","iframeに入る"),
+        ("drag_and_drop","ドラッグアンドドロップ"),
+        ("upload_file","ファイルアップロード")
     )
     crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
-    selector = models.CharField("操作対象name属性",max_length=256)
+    selector = models.CharField("操作対象name属性", blank=True, null=True, max_length=256)
     action_type = models.CharField("アクションタイプ", max_length=64, choices=ACTION_TYPE_LIST, default="") # アクションの詳細
     content = models.CharField("入力内容", max_length=64, blank=True, null=True) # 入力内容
     valid = models.BooleanField("有効", default=True) # 有効/無効
     description = models.CharField("説明", blank=True, null=True, max_length=256)
 
     def __unicode__(self):
-        return self.description
+        return self.description or u"操作コマンド"
 
 
 class ScraperData(models.Model):
