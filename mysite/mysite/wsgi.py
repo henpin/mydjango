@@ -8,9 +8,14 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 """
 
 import os
-
+import sys
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
+
+# add package path
+parent_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+sys.path.append(parent_dir)
+sys.path.append('/home/ubuntu/git/module')
 
 application = get_wsgi_application()
