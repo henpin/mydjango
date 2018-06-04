@@ -33,8 +33,12 @@ SECRET_KEY = 's#9kkdi@denkmc^l136clxsdtds4%u$ppde06@cghz_pu4!&)='
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+#DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "52.197.80.112"
+]
 
 
 # Application definition
@@ -135,6 +139,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # setting django-celery
 import djcelery
