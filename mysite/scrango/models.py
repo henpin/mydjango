@@ -58,7 +58,7 @@ class CrawlerData(models.Model):
         (UA_IPHONE,"iphone")
     ) # ユーザーエージェントリスト
 
-    name = models.CharField("名前",max_length=256)
+    name = models.CharField("名前",max_length=255)
     description = models.CharField("説明", blank=True, null=True, max_length=1024)
     url = models.CharField("URL",max_length=512, blank=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
@@ -66,7 +66,7 @@ class CrawlerData(models.Model):
     screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
     notification = models.CharField("通知先", choices=NOTIFICATION_LIST ,max_length=64, blank=True) # 通知先
     last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
-    user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=256, default=UA_FF) # 通知先
+    user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=255, default=UA_FF) # 通知先
     #proxy = models.CharField("プロキシサーバー", max_length=256, blank=True, null=True) # プロキシサーバー
 
     def __unicode__(self):
@@ -89,11 +89,11 @@ class ActionData(models.Model):
         ("upload_file","ファイルアップロード")
     )
     crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
-    selector = models.CharField("操作対象name属性", blank=True, null=True, max_length=256)
+    selector = models.CharField("操作対象name属性", blank=True, null=True, max_length=255)
     action_type = models.CharField("アクションタイプ", max_length=64, choices=ACTION_TYPE_LIST, default="") # アクションの詳細
     content = models.CharField("入力内容", max_length=64, blank=True, null=True) # 入力内容
     valid = models.BooleanField("有効", default=True) # 有効/無効
-    description = models.CharField("説明", blank=True, null=True, max_length=256)
+    description = models.CharField("説明", blank=True, null=True, max_length=255)
 
     def __unicode__(self):
         return self.description or u"操作コマンド"
@@ -109,12 +109,12 @@ class ScraperData(models.Model):
         ("href","href属性地"),
     ) # 取得コンテンツチョイス
 
-    selector = models.CharField("CSSセレクタ",max_length=256)
+    selector = models.CharField("CSSセレクタ",max_length=255)
     target = models.CharField("取得対象", max_length=64, choices=TARGET_LIST, default="html", blank=True, null=True) # 属性
     crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
     master_scraper = models.ForeignKey("self",verbose_name="これを見つけたら実行",null=True,blank=True) # 従属的スクレイパ
-    name = models.CharField("名前",max_length=256)
-    crawler_name = models.CharField("クローラー名",max_length=256,blank=True) # 再帰的クローラー名
+    name = models.CharField("名前",max_length=255)
+    crawler_name = models.CharField("クローラー名",max_length=255,blank=True) # 再帰的クローラー名
     valid = models.BooleanField("有効", default=True) # 有効/無効
 
     def __unicode__(self):
