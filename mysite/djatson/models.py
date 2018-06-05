@@ -14,8 +14,8 @@ class URLData(models.Model):
     )
     
     url = models.CharField("URL",max_length=512)
-    name = models.CharField("名前",max_length=256)
-    description = models.CharField("説明",max_length=256,default="") # 説明
+    name = models.CharField("名前",max_length=255)
+    description = models.CharField("説明",max_length=255,default="") # 説明
     selector = models.CharField("対象CSSセレクタ(オプション)",blank=True,max_length=128, editable=False) # 解析対象 : 廃止予定
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="pending",editable=False) # 初期化フラグ
     json = models.TextField(blank=True, editable=False) # 解析済みJSONデータ
