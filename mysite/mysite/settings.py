@@ -101,10 +101,6 @@ DATABASES = {
         'PASSWORD': 'Emma#2017',
         'HOST': 'scrango.c21zunpjfeom.ap-northeast-1.rds.amazonaws.com',
     },
-    'sqlite': { # for sqlite
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
 }
 SILENCED_SYSTEM_CHECKS = ['mysql.E001'] # TODO : ワーニングをもみ消す
 
