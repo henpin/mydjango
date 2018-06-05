@@ -9,13 +9,6 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
-
----------------------------------------------------------------------
-Addtional apps :
-* bootstrap_admin : admin装飾テーマ
-* django_admin_row_actions : actionを行ごとに表示してくれる
-    * https://github.com/DjangoAdminHackers/django-admin-row-actions
-* jet : admin装飾テーマ
 """
 
 import os
@@ -43,9 +36,9 @@ INSTALLED_APPS = [
     'djangolla.apps.DjangollaConfig',
     'djatson.apps.DjatsonConfig',
     'scrango.apps.ScrangoConfig',
-    'jet.dashboard', # django-jet
-    'jet', # django-jet
-    #'bootstrap_admin', # commentout if theme not installed
+    #'jet.dashboard', # django-jet
+    #'jet', # django-jet
+    'bootstrap_admin', # commentout if theme not installed
     'django_admin_row_actions', # commentout if theme not installed
     'django.contrib.admin',
     'django.contrib.auth',
@@ -85,7 +78,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -163,7 +155,4 @@ djcelery.setup_loader()
 # settings media
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-
-# JET
-#JET_SIDE_MENU_COMPACT = True
 

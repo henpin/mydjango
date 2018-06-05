@@ -38,8 +38,8 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     # 並べる
     inlines = [
         ScraperDataInline,
+        ActionDataInline,
         ResultDataInline,
-        ActionDataInline
         ]
     list_display = ("name","description","short_url","state","repetition","screenshot","notification","last_execute_time")
 
