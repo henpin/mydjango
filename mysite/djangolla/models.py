@@ -32,7 +32,7 @@ class InputData(models.Model):
         ("telnum","電話番号"),
         ("postnum","郵便番号"),
     ) # input欄の種類
-    parent_form = models.ForeignKey(FormData) # フォームが親
+    parent_form = models.ForeignKey(FormData, on_delete=models.CASCADE) # フォームが親
     input_name = models.CharField("name属性", max_length=255) # input名
     input_type = models.CharField("入力タイプ", max_length=64, choices=INPUT_TYPE) # 選択
     require = models.BooleanField("必須", default=True) # 必須ブーリアン
@@ -44,7 +44,7 @@ class InputData(models.Model):
 class LogManageData(models.Model):
     """ ログマネージャ """
     uuid = models.CharField("UUID", max_length=1024, primary_key=True) # 一意のログ管理ID:Ajaxで利用
-    form = models.ForeignKey(FormData) # フォーム
+    form = models.ForeignKey(FormData, on_delete=models.CASCADE) # フォーム
     datetime = models.DateTimeField("受信時間",default=timezone.now) # 受信時間
 
     def __unicode__(self):
@@ -52,7 +52,7 @@ class LogManageData(models.Model):
 
 class LogData(models.Model):
     """ 入力ログ """
-    manager = models.ForeignKey(LogManageData) # ログマネージャ
+    manager = models.ForeignKey(LogManageData, on_delete=models.CASCADE) # ログマネージャ
     datetime = models.DateTimeField("受信時間",default=timezone.now) # 受信時間
     input_name = models.CharField("name属性", max_length=255) # input名
     input_value = models.CharField("入力値", max_length=255) # input値
