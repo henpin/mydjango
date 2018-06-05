@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
 # Models
 from .models import CrawlerData, ScraperData, ResultData, ActionData
+from .models import SlackAPIData, ChatworkAPIData
 # modules
 from .apps import gen_url
 # extenstions
@@ -61,5 +62,16 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         return row_actions
 
 
+class SlackAPIDataAdmin(admin.ModelAdmin):
+    """ スラックAPI情報登録 """
+    pass
+
+
+class ChatworkAPIDataAdmin(admin.ModelAdmin):
+    """ チャットワークAPI情報登録"""
+    pass
+
 # Register your models here.
 admin.site.register(CrawlerData, CrawlerDataAdmin)
+admin.site.register(SlackAPIData, SlackAPIDataAdmin)
+admin.site.register(ChatworkAPIData, ChatworkAPIDataAdmin)

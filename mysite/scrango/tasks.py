@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from celery import shared_task
 from .models import CrawlerData, ScraperData, ResultData, ActionData
+from .models import ChatAPIData, SlackAPIData, ChatworkAPIData
 from django.conf import settings
 from django.utils import timezone
 
@@ -19,9 +20,6 @@ from template_system import TemplateSystem
 from selenium_loader import SeleniumLoader, FormAction
 
 
-# スラックインターフェイス
-SLACK = SlackInterface(username="scrango")
-CHATWORK = ChatworkInterface()
 # スクリーンショット値抜き器
 TEMPLATE_SYSTEM = TemplateSystem("($$px,$$px)")
 
@@ -38,7 +36,7 @@ def do_scrape(crawler_data):
         # スクレイピングデータ取得
         url = crawler_data.url
         screenshot_size = crawler_data.screenshot # スクリーンショット取るか否か
-        notification = crawler_data.notification # 通知先
+        notification = crawler_data.notification.convert2entity() # 通知先 : 具象クラスに落とす
         user_agent = crawler_data.user_agent # ユーザーエージェント
 
         # クローラーからアクション抽出
@@ -62,9 +60,9 @@ def do_scrape(crawler_data):
             # スクリーンショットとっちゃう
             if screenshot_size :
                 # ファイル名作る
-                _uuid = str(uuid.uuid4())[:10]
+                _uuid = str(uuid.uuid4())
                 media_path = settings.MEDIA_ROOT
-                filename = os.path.join(media_path, _uuid +"_screenshot.png")
+                filename = os.path.join(media_path, _uuid +"_ss.png")
                 # スクリーンショットサイズの解析
                 x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
                 # とる
@@ -85,9 +83,9 @@ def do_scrape(crawler_data):
         # リザルトオブジェクト
         resultObj = ResultData(
             crawler = crawler_data,
-            json = jsoned,
+            json = jsoned,      # 結果JSON
             result = "success",
-            screenshot = filename
+            screenshot = filename, # スクリーンショットURL
             ).save() # 保存
 
         # 状態変遷
@@ -95,34 +93,79 @@ def do_scrape(crawler_data):
         crawler_data.save()
 
         # 通知
-        notificate_it(notification,scraper,filename)
+        if notification :
+            notificate_it(
+                notification,
+                json.dumps( # json-dumpして通知
+                    scraper.get_result(), # リザルト辞書をそのままjson化
+                    ensure_ascii=False,
+                    indent=4),
+                filename
+                )
 
-    except :
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        # 結果JSON作成
+        jsoned = json.dumps({
+            "error_message" : str(e) # エラーメッセージ
+            },
+            ensure_ascii=False,
+            indent=4,
+            )
+
+        # 結果の保存
+        resultObj = ResultData(
+            crawler = crawler_data,
+            json = jsoned,
+            result = "failure",
+            ).save() # 保存
+
         # 状態変遷
         crawler_data.state = "error" # 状態-> エラー
         crawler_data.save()
-        import traceback; traceback.print_exc()
+
+        # 通知
+        if notification :
+            notificate_it( notification, jsoned)
 
 
-def notificate_it(notification,scraper,filename):
+def notificate_it(notification,message,filename=""):
     """ 通知する """
-    if notification == "slack":
-        # そのままJSONダンプ
-        data = json.dumps(
-            scraper.get_result(),
-            ensure_ascii = False,
-            indent = 4
-            )
-        SLACK.send_message(data,filename)
+    # slack通知処理
+    if isinstance(notification,SlackAPIData):
+        # データ抜く
+        user_name = notification.user_name
+        webhook_url = notification.webhook_url
+        token = notification.token
+        channel_id = notification.channel_id
 
-    elif notification == "chatwork":
-        # そのままJSONダンプ
-        data = json.dumps(
-            scraper.get_result(),
-            ensure_ascii = False,
-            indent = 4
-            )
-        CHATWORK.send_message(data)
+        # スラックインターフェイス起こす
+        slack = SlackInterface(username=(user_name or "scrango"))
+        # データの注入
+        slack.injects(
+            url = webhook_url,
+            file_upload_token = token,
+            channel_id = channel_id
+        )
+        # 通知 
+        slack.send_message(message,filename)
+
+    # chatwork通知処理
+    elif isinstance(notification,ChatworkAPIData):
+        # データ抜く
+        user_name = notification.user_name
+        api_key = notification.api_key
+        roomid = notification.roomid
+
+        # インターフェイス起こす
+        chatwork = ChatworkInterface()
+        # データ注入
+        chatwork.injects(
+            apikey = api_key,
+            roomid = roomid
+        )
+        # 通知
+        chatwork.send_message(message)
 
 
 def gen_commandNodeTree(crawler_data):

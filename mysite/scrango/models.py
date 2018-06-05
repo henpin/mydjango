@@ -14,6 +14,42 @@ UA_ANDROID = 'Mozilla/5.0 (Android 4.4; Mobile; rv:41.0) Gecko/41.0 Firefox/41.0
 UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_5 like Mac OS X) AppleWebKit/604.5.2 (KHTML, like Gecko) Version/11.0 Mobile/15D5046b Safari/604.1' # iphone
 
 
+# API Data
+class ChatAPIData(models.Model):
+    """ チャットAPIデータ基底モデル """
+    user_name = models.CharField("ユーザー名",max_length=128, blank=True, null=True)
+    description = models.CharField("説明",max_length=512,blank=True,null=True)
+
+    def __unicode__(self):
+        return self.user_name
+
+    def convert2entity(self):
+        """ 実クラスに戻す"""
+        # スラックAPIデータから探す
+        qs = SlackAPIData.objects.filter(id=self.id)
+        if len(qs):
+            # あればそれを返す
+            return qs[0]
+
+        else :
+            # さもなくばChatworkAPIDataから抜く
+            qs = ChatworkAPIData.objects.filter(id=self.id)
+            if len(qs):
+                return qs[0]
+
+
+class SlackAPIData(ChatAPIData):
+    """ スラック連携API """
+    webhook_url = models.CharField("Webhook URL",max_length=1024) # テキスト用
+    token = models.CharField("Token(画像送信API)",max_length=512, blank=True, null=True) # 画像用
+    channel_id = models.CharField("ChannelID(画像送信API)",max_length=255, blank=True, null=True) # 画像用
+    
+class ChatworkAPIData(ChatAPIData):
+    """ チャットワーク連携API """
+    api_key = models.CharField("API Token",max_length=255)
+    roomid = models.CharField("roomid",max_length=128)
+
+
 # Create your models here.
 class CrawlerData(models.Model):
     """ クローラーデータ """
@@ -42,12 +78,6 @@ class CrawlerData(models.Model):
         ("(1280px,980px)","PCサイズ"),
     ) # スクリーンショットサイズ
 
-    NOTIFICATION_LIST = (
-        ("","未設定"),
-        ("slack","slack"),
-        ("chatwork","chatwork"),
-    ) # 通知先
-
     USERAGENT_LIST = (
         (UA_FF,"自動"),
         (UA_FF,"Firefox"),
@@ -64,7 +94,7 @@ class CrawlerData(models.Model):
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
     repetition = models.CharField("定期実行", max_length=64, choices=REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
     screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
-    notification = models.CharField("通知先", choices=NOTIFICATION_LIST ,max_length=64, blank=True) # 通知先
+    notification = models.ForeignKey(ChatAPIData, on_delete=models.SET_NULL, null=True) # 通知
     last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
     user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=255, default=UA_FF) # 通知先
     #proxy = models.CharField("プロキシサーバー", max_length=256, blank=True, null=True) # プロキシサーバー
@@ -138,4 +168,6 @@ class ResultData(models.Model):
 
     def __unicode__(self):
         return str(self.datetime)
+
+
 
