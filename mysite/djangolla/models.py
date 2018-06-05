@@ -11,7 +11,7 @@ from django.utils import timezone
 # Create your models here.
 class FormData(models.Model):
     """ フォームそのもの"""
-    form_name = models.CharField("フォーム名",max_length=256) # フォーム名
+    form_name = models.CharField("フォーム名",max_length=255) # フォーム名
 
     def __unicode__(self):
         return self.form_name
@@ -33,7 +33,7 @@ class InputData(models.Model):
         ("postnum","郵便番号"),
     ) # input欄の種類
     parent_form = models.ForeignKey(FormData) # フォームが親
-    input_name = models.CharField("name属性", max_length=256) # input名
+    input_name = models.CharField("name属性", max_length=255) # input名
     input_type = models.CharField("入力タイプ", max_length=64, choices=INPUT_TYPE) # 選択
     require = models.BooleanField("必須", default=True) # 必須ブーリアン
     error_msg = models.CharField("エラーメッセージ", max_length=512) # エラーメッセージ
@@ -54,8 +54,8 @@ class LogData(models.Model):
     """ 入力ログ """
     manager = models.ForeignKey(LogManageData) # ログマネージャ
     datetime = models.DateTimeField("受信時間",default=timezone.now) # 受信時間
-    input_name = models.CharField("name属性", max_length=256) # input名
-    input_value = models.CharField("入力値", max_length=256) # input値
+    input_name = models.CharField("name属性", max_length=255) # input名
+    input_value = models.CharField("入力値", max_length=255) # input値
 
     def __unicode__(self):
         return str(self.datetime)

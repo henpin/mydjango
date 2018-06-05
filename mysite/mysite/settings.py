@@ -40,7 +40,6 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'polls.apps.PollsConfig',
     'djangolla.apps.DjangollaConfig',
     'djatson.apps.DjatsonConfig',
     'scrango.apps.ScrangoConfig',
