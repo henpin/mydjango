@@ -88,7 +88,7 @@ class ActionData(models.Model):
         ("drag_and_drop","ドラッグアンドドロップ"),
         ("upload_file","ファイルアップロード")
     )
-    crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
+    crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # クローラーに対してフォーリングキー
     selector = models.CharField("操作対象name属性", blank=True, null=True, max_length=255)
     action_type = models.CharField("アクションタイプ", max_length=64, choices=ACTION_TYPE_LIST, default="") # アクションの詳細
     content = models.CharField("入力内容", max_length=64, blank=True, null=True) # 入力内容
@@ -111,8 +111,8 @@ class ScraperData(models.Model):
 
     selector = models.CharField("CSSセレクタ",max_length=255)
     target = models.CharField("取得対象", max_length=64, choices=TARGET_LIST, default="html", blank=True, null=True) # 属性
-    crawler = models.ForeignKey(CrawlerData) # クローラーに対してフォーリングキー
-    master_scraper = models.ForeignKey("self",verbose_name="これを見つけたら実行",null=True,blank=True) # 従属的スクレイパ
+    crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # クローラーに対してフォーリングキー
+    master_scraper = models.ForeignKey("self",verbose_name="これを見つけたら実行",null=True,blank=True, on_delete=models.PROTECT) # 従属的スクレイパ
     name = models.CharField("名前",max_length=255)
     crawler_name = models.CharField("クローラー名",max_length=255,blank=True) # 再帰的クローラー名
     valid = models.BooleanField("有効", default=True) # 有効/無効
@@ -127,7 +127,7 @@ class ResultData(models.Model):
         ("failure","失敗"),
     )
 
-    crawler = models.ForeignKey(CrawlerData) # 生成元クローラー
+    crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # 生成元クローラー
     datetime = models.DateTimeField("実行時間",default=timezone.now) # 実行時間
     json = models.TextField(blank=True, editable=True) # 解析結果JSON
     result = models.CharField("可否", max_length=64, choices=RESULT_LIST, default="", blank=True) # 属性
