@@ -43,7 +43,7 @@ class InputData(models.Model):
     
 class LogManageData(models.Model):
     """ ログマネージャ """
-    uuid = models.CharField("UUID", max_length=1024, primary_key=True) # 一意のログ管理ID:Ajaxで利用
+    uuid = models.CharField("UUID", max_length=255, primary_key=True) # 一意のログ管理ID:Ajaxで利用
     form = models.ForeignKey(FormData, on_delete=models.CASCADE) # フォーム
     datetime = models.DateTimeField("受信時間",default=timezone.now) # 受信時間
 
