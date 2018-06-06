@@ -45,8 +45,9 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """
-        url_for_scrape = gen_url("scrape",item.name)
-        url_for_view = gen_url("view_result",item.name)
+        url_for_scrape = gen_url("scrape",str(item.uuid))
+        url_for_view = gen_url("view_result",str(item.uuid))
+        url_for_api = gen_url("api/scrape",str(item.uuid))
         # 行埋め込みアクション
         row_actions = [
             {
@@ -56,6 +57,10 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             {
                 'label': '結果を見る',
                 'url': url_for_view
+            },
+            {
+                'label': 'WebAPI呼び出し',
+                'url': url_for_api
             }
         ]
 

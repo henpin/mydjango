@@ -47,6 +47,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'djcelery', # Async-processing-framework
+    'mysite',
+    'rest_framework',
+    #'django_tables2',
+    #'crudbuilder',
 ]
 
 MIDDLEWARE = [

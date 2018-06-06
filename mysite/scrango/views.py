@@ -7,6 +7,10 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.views import generic
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import viewsets
 from .models import CrawlerData, ScraperData, ResultData
 
 import tasks
@@ -15,10 +19,10 @@ import tasks
 TEMPLATE_JSON_JS_PATH = os.path.dirname(os.path.abspath(__file__)) + '/static/view_result.js'
 
 # Create your views here.
-def do_scrape(req,name):
+def do_scrape(req,_uuid):
     """ スクレイピングする """
     # データ取得
-    crawler_data = get_object_or_404(CrawlerData, name=name)
+    crawler_data = get_object_or_404(CrawlerData, uuid=_uuid)
 
     # 状態変遷
     if crawler_data.url :
@@ -43,15 +47,15 @@ class ViewResultView(generic.TemplateView):
         # コンテキスト取得
         context = super(ViewResultView, self).get_context_data(**kwargs)
         # データ取得
-        name = kwargs["name"]
-        context['object'] = get_object_or_404(CrawlerData,name=name)
+        _uuid = kwargs["_uuid"]
+        context['object'] = get_object_or_404(CrawlerData,uuid=_uuid)
 
         return context
 
-def get_view_result_js(req, name):
+def get_view_result_js(req, _uuid):
     """ jsonビュアーJSの生成 """
     # データ取得
-    crawler_data = get_object_or_404(CrawlerData, name=name)
+    crawler_data = get_object_or_404(CrawlerData, uuid=_uuid)
     last_result = ResultData.objects.filter(crawler=crawler_data).order_by("-datetime")[0] # リザルトとる
     json_data = last_result.json.replace(u"\\",u"\\\\").replace(u"'",u"\\'")
 
@@ -64,3 +68,20 @@ def get_view_result_js(req, name):
     js_template = js_template.replace(str("{{ JSON }}"), str(json_data))
 
     return HttpResponse(js_template, content_type="text/javascript; charset=UTF-8")
+
+
+# API
+class ScrapeAPIViewSet(viewsets.ViewSet):
+    """ スクレイピングAPIJビューセット"""
+    def retrieve(self, request, pk=None):
+        """ Getメソッド処理"""
+        # データ取得
+        crawler_data = get_object_or_404(CrawlerData, uuid=pk)
+
+        # スクレイピング開始
+        result = tasks.do_scrape(crawler_data)
+
+        # JSONなのでそのまま返す
+        return Response(result)
+
+

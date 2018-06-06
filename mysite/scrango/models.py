@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
+from mysite.models import GeneralModel
+import uuid
 
 # User Agents
 UA_FF = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0' # FF
@@ -15,7 +17,7 @@ UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_5 like Mac OS X) AppleWebKi
 
 
 # API Data
-class ChatAPIData(models.Model):
+class ChatAPIData(GeneralModel):
     """ チャットAPIデータ基底モデル """
     user_name = models.CharField("ユーザー名",max_length=128, blank=True, null=True)
     description = models.CharField("説明",max_length=512,blank=True,null=True)
@@ -51,7 +53,7 @@ class ChatworkAPIData(ChatAPIData):
 
 
 # Create your models here.
-class CrawlerData(models.Model):
+class CrawlerData(GeneralModel):
     """ クローラーデータ """
     STATE_LIST = (
         ("executing","実行中"),
@@ -88,15 +90,24 @@ class CrawlerData(models.Model):
         (UA_IPHONE,"iphone")
     ) # ユーザーエージェントリスト
 
+    NOTIFICATION_COND_LIST = (
+        ("always","常時"),
+        ("changed","変化時"),
+        ("ss_changed","スクリーンショット変化時"),
+        ("ss_changed2","スクリーンショット変化時(感度低)"),
+    ) # 通知条件リスト
+
     name = models.CharField("名前",max_length=255)
     description = models.CharField("説明", blank=True, null=True, max_length=1024)
-    url = models.CharField("URL",max_length=512, blank=True)
+    url = models.CharField("URL",max_length=512, blank=True, null=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
     repetition = models.CharField("定期実行", max_length=64, choices=REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
     screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
-    notification = models.ForeignKey(ChatAPIData, on_delete=models.SET_NULL, null=True) # 通知
+    notification = models.ForeignKey(ChatAPIData, on_delete=models.SET_NULL, null=True, blank=True) # 通知
+    notification_cond = models.CharField("通知条件", max_length=64, choices=NOTIFICATION_COND_LIST, default="always") # 初期化フラグ
     last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
     user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=255, default=UA_FF) # 通知先
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     #proxy = models.CharField("プロキシサーバー", max_length=256, blank=True, null=True) # プロキシサーバー
 
     def __unicode__(self):

@@ -18,10 +18,14 @@ from slack_interface import SlackInterface
 from chatwork_interface import ChatworkInterface
 from template_system import TemplateSystem
 from selenium_loader import SeleniumLoader, FormAction
+from image_utils import ImageUtil
 
+import re_utils as reu
 
 # スクリーンショット値抜き器
 TEMPLATE_SYSTEM = TemplateSystem("($$px,$$px)")
+# スクリーンショット類似度比較器
+IMAGE_UTILS = ImageUtil()
 
 
 @shared_task
@@ -36,7 +40,6 @@ def do_scrape(crawler_data):
         # スクレイピングデータ取得
         url = crawler_data.url
         screenshot_size = crawler_data.screenshot # スクリーンショット取るか否か
-        notification = crawler_data.notification.convert2entity() # 通知先 : 具象クラスに落とす
         user_agent = crawler_data.user_agent # ユーザーエージェント
 
         # クローラーからアクション抽出
@@ -93,30 +96,25 @@ def do_scrape(crawler_data):
         crawler_data.save()
 
         # 通知
-        if notification :
-            notificate_it(
-                notification,
-                json.dumps( # json-dumpして通知
-                    scraper.get_result(), # リザルト辞書をそのままjson化
-                    ensure_ascii=False,
-                    indent=4),
-                filename
-                )
+        notificate_it(
+            crawler_data,
+            scraper.get_result(),
+            filename,
+            )
+
+        return jsoned
 
     except Exception as e:
         import traceback; traceback.print_exc()
         # 結果JSON作成
-        jsoned = json.dumps({
-            "error_message" : str(e) # エラーメッセージ
-            },
-            ensure_ascii=False,
-            indent=4,
-            )
+        result_data = {
+            "error_message" : reu.decode(str(e)) # エラーメッセージ
+        }
 
         # 結果の保存
         resultObj = ResultData(
             crawler = crawler_data,
-            json = jsoned,
+            json = json.dumps(result_data),
             result = "failure",
             ).save() # 保存
 
@@ -125,12 +123,57 @@ def do_scrape(crawler_data):
         crawler_data.save()
 
         # 通知
-        if notification :
-            notificate_it( notification, jsoned)
+        notificate_it(crawler_data, result_data, error=True) # 失敗なら強制通知
+
+        return json.dumps(result_data)
 
 
-def notificate_it(notification,message,filename=""):
-    """ 通知する """
+def notificate_it(crawler_data,result_data,filename="",error=False):
+    """ 通知する"""
+    # 通知周りの情報を抜く
+    notification = crawler_data.notification.convert2entity() # 通知先 : 具象クラスに落とす
+    notification_cond = crawler_data.notification_cond # 通知条件
+
+    # 通知できるか判定
+    if not notification :
+        return  # さよなら
+   
+    # 通知条件判定
+    if error :
+        pass
+    elif notification_cond == "always" :
+        pass
+    elif notification_cond == "changed":
+        # 最終取得結果抜く
+        results = ResultData.objects.filter(crawler=crawler_data).order_by('-datetime')
+        if len(results) >=2:
+            last_result = results[1] # 1こ前
+            last_result_dic = json.loads(last_result.json or "") # 辞書に復元
+            # 結果比較
+            if result_data == last_result_dic :
+                return # 一緒なら通知しない
+    elif notification_cond in ("ss_changed","ss_changed2"):
+        # 最終取得結果からss抜く
+        results = ResultData.objects.filter(crawler=crawler_data).order_by('-datetime')
+        if len(results) >= 2:
+            last_result = results[1] # 1こ前
+            last_result_ss = str(last_result.screenshot)
+            # 結果比較
+            if not filename:
+                msg = "通知条件エラー通知条件にスクリーンショット比較が定義されていますが、スクリーンショット取得設定がされていません"
+                raise Exception(msg) # 比較不能
+
+            if last_result_ss :
+                similarity = IMAGE_UTILS.calc_similarity(last_result_ss,filename)
+                print similarity
+                if notification_cond == "ss_changed" and similarity == 1:
+                    return # 完全一致なら通知しない
+                elif notification_cond == "ss_changed2" and similarity > 0.5:
+                    return # 閾値委譲なら通知しない
+
+    # メッセージ作成
+    message = create_notification_message(result_data)
+
     # slack通知処理
     if isinstance(notification,SlackAPIData):
         # データ抜く
@@ -166,6 +209,39 @@ def notificate_it(notification,message,filename=""):
         )
         # 通知
         chatwork.send_message(message)
+
+
+def create_notification_message(result_data):
+    """ 抽出済みJSON元データから、通知に耐えうるデータに変換する"""
+    # 再帰ジェネレータでｶﾞﾝｶﾞﾝやってyieldする
+    return u"\n".join(item2message(result_data))
+
+
+def item2message(item,prefix="",indent=0):
+    """ 
+    オブジェクトをメッセージ化する
+    再帰ジェネレータモデル
+    """
+    indentate = lambda _str : (u"  " *indent) +_str
+
+    if isinstance(item,dict):
+        for key,val in item.items() :
+            if isinstance(val,(str,unicode)) and val :
+                _str = u"%s : 「%s」" % (key,val)
+                yield indentate(_str)
+
+            elif isinstance(val,list):
+                for i,_ in enumerate(val) :
+                    _prefix = u"%s(%d)" % (key,i+1)
+                    for v in item2message(_,_prefix,indent+1):
+                        yield v
+                yield "" # 空白おく
+
+        yield "" # 空白おく
+
+    elif isinstance(item,(unicode,str)) and item:
+        yield indentate(u"%s : 「%s」" % (prefix,item))
+
 
 
 def gen_commandNodeTree(crawler_data):
