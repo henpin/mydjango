@@ -30,7 +30,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
-    "52.197.80.112"
+    "52.197.80.112",
+    "scrango.nebit-tech.com"
 ]
 
 
