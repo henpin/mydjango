@@ -25,5 +25,4 @@ urlpatterns = [
     url(r'^djangolla/',include("djangolla.urls")),
     url(r'^djatson/',include("djatson.urls")),
     url(r'^scrango/',include("scrango.urls")),
-    #url(r'^crud/',  include('crudbuilder.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

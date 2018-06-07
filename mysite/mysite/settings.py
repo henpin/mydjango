@@ -53,8 +53,6 @@ INSTALLED_APPS = [
     'djcelery', # Async-processing-framework
     'mysite',
     'rest_framework',
-    #'django_tables2',
-    #'crudbuilder',
 ]
 
 MIDDLEWARE = [
