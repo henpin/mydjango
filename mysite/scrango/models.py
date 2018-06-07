@@ -170,9 +170,10 @@ class ResultData(models.Model):
 
     crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # 生成元クローラー
     datetime = models.DateTimeField("実行時間",default=timezone.now) # 実行時間
-    json = models.TextField(blank=True, editable=True) # 解析結果JSON
+    json = models.TextField(blank=True) # 解析結果JSON
     result = models.CharField("可否", max_length=64, choices=RESULT_LIST, default="", blank=True) # 属性
     screenshot = models.ImageField(upload_to="images/",null=True,blank=True)
+    log = models.TextField(blank=True,null=True) # ログデータ
 
     class Meta:
         ordering = ('-datetime',)
