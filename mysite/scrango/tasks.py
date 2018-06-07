@@ -31,17 +31,21 @@ IMAGE_UTILS = ImageUtil()
 @shared_task
 def do_scrape(crawler_data):
     """ スクレイピングをする """
+    log = [] # ログリスト
+    log.append("スクレイピングを開始しました")
     try:
         # 状態変遷
         crawler_data.state = "executing" # 状態-> 実行中
         crawler_data.last_execute_time = timezone.now() # 最終実行時間-> 今
         crawler_data.save()
 
+        log.append("スクレイピング情報を取得中...")
         # スクレイピングデータ取得
         url = crawler_data.url
         screenshot_size = crawler_data.screenshot # スクリーンショット取るか否か
         user_agent = crawler_data.user_agent # ユーザーエージェント
 
+        log.append("スクレイパーを構築中...")
         # クローラーからアクション抽出
         action_list = [
             FormAction( # アクションデータをフォームアクション化
@@ -53,8 +57,10 @@ def do_scrape(crawler_data):
 
         # JSパーシング済みHTML取得
         with SeleniumLoader(user_agent) as selen :
+            log.append("Webページ取得中...")
             # url読む
             selen.load_url(url)
+            log.append("フォーム操作実行中...")
             # アクション処理
             selen.apply_formActions(*action_list)
             # HTML抜く
@@ -62,6 +68,7 @@ def do_scrape(crawler_data):
 
             # スクリーンショットとっちゃう
             if screenshot_size :
+                log.append("スクリーンショット取得中...")
                 # ファイル名作る
                 _uuid = str(uuid.uuid4())
                 media_path = settings.MEDIA_ROOT
@@ -78,52 +85,61 @@ def do_scrape(crawler_data):
         root = gen_commandNodeTree(crawler_data)
 
         # スクレイピング
+        log.append("情報抽出中...")
         scraper = CommandNodeScraper()
         scraper.parse(html)
         jsoned = scraper.call(root,"json")
 
         # 結果の保存
-        # リザルトオブジェクト
-        resultObj = ResultData(
-            crawler = crawler_data,
-            json = jsoned,      # 結果JSON
-            result = "success",
-            screenshot = filename, # スクリーンショットURL
-            ).save() # 保存
-
-        # 状態変遷
-        crawler_data.state = "active"
-        crawler_data.save()
-
         # 通知
+        log.append("通知連携処理中...")
         notificate_it(
             crawler_data,
             scraper.get_result(),
             filename,
             )
 
+        # リザルトオブジェクト
+        log.append("スクレイピングが完了しました")
+        ResultData(
+            crawler = crawler_data,
+            json = jsoned,      # 結果JSON
+            result = "success",
+            screenshot = filename, # スクリーンショットURL
+            log = "\n".join(log) # ログデータ保存
+            ).save() # 保存
+
+        # 状態変遷
+        crawler_data.state = "active"
+        crawler_data.save()
+
         return jsoned
 
     except Exception as e:
         import traceback; traceback.print_exc()
+        log.append("エラーが発生しました")
+        log.append(str(e))
         # 結果JSON作成
         result_data = {
             "error_message" : reu.decode(str(e)) # エラーメッセージ
         }
 
+        # 通知
+        log.append("通知連携処理中...")
+        notificate_it(crawler_data, result_data, error=True) # 失敗なら強制通知
+
         # 結果の保存
-        resultObj = ResultData(
+        log.append("スクレイピングが完了しました")
+        ResultData(
             crawler = crawler_data,
             json = json.dumps(result_data),
             result = "failure",
+            log = "\n".join(log) # ログデータ保存
             ).save() # 保存
 
         # 状態変遷
         crawler_data.state = "error" # 状態-> エラー
         crawler_data.save()
-
-        # 通知
-        notificate_it(crawler_data, result_data, error=True) # 失敗なら強制通知
 
         return json.dumps(result_data)
 
@@ -131,7 +147,7 @@ def do_scrape(crawler_data):
 def notificate_it(crawler_data,result_data,filename="",error=False):
     """ 通知する"""
     # 通知周りの情報を抜く
-    notification = crawler_data.notification.convert2entity() # 通知先 : 具象クラスに落とす
+    notification = crawler_data.notification.convert2entity() if crawler_data.notification else None # 通知先 : 具象クラスに落とす
     notification_cond = crawler_data.notification_cond # 通知条件
 
     # 通知できるか判定
@@ -172,7 +188,7 @@ def notificate_it(crawler_data,result_data,filename="",error=False):
                     return # 閾値委譲なら通知しない
 
     # メッセージ作成
-    message = create_notification_message(result_data)
+    message = create_notification_message(crawler_data.name, result_data)
 
     # slack通知処理
     if isinstance(notification,SlackAPIData):
@@ -211,13 +227,13 @@ def notificate_it(crawler_data,result_data,filename="",error=False):
         chatwork.send_message(message)
 
 
-def create_notification_message(result_data):
+def create_notification_message(crawler_name,result_data):
     """ 抽出済みJSON元データから、通知に耐えうるデータに変換する"""
     # 再帰ジェネレータでｶﾞﾝｶﾞﾝやってyieldする
-    return u"\n".join(item2message(result_data))
+    return (u"スクレイピング「%s」を実行しました。\n\n" % (crawler_name)) +u"\n".join(item2message(result_data))
 
 
-def item2message(item,prefix="",indent=0):
+def item2message(item,prefix="",indent=-1):
     """ 
     オブジェクトをメッセージ化する
     再帰ジェネレータモデル
@@ -227,7 +243,7 @@ def item2message(item,prefix="",indent=0):
     if isinstance(item,dict):
         for key,val in item.items() :
             if isinstance(val,(str,unicode)) and val :
-                _str = u"%s : 「%s」" % (key,val)
+                _str = u"【%s】%s" % (key,val)
                 yield indentate(_str)
 
             elif isinstance(val,list):
@@ -240,7 +256,7 @@ def item2message(item,prefix="",indent=0):
         yield "" # 空白おく
 
     elif isinstance(item,(unicode,str)) and item:
-        yield indentate(u"%s : 「%s」" % (prefix,item))
+        yield indentate(u"【%s】%s" % (prefix,item))
 
 
 
