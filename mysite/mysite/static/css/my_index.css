@@ -1,0 +1,11 @@
+.landing-reason:before{
+    background-color: rgba(18, 57, 128, 0.9);
+}
+
+.free-trial{
+    background-color: rgba(18, 57, 128, 0.9);
+}
+
+.baseline{
+    vertical-align: baseline !important;
+}
