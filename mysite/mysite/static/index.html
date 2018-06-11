@@ -66,7 +66,7 @@
           </div>
           <div class="collapse navbar-collapse" id="custom-collapse">
             <ul class="nav navbar-nav navbar-right">
-                <li><a class="section-scroll" href="#">Scrango</a></li>
+                <li><a class="section-scroll" href="#home">Scrango</a></li>
                 <li><a class="section-scroll" href="#services">Scrangoについて</a></li>
                 <li><a class="section-scroll" href="#price">料金体系</a></li>
                 <li><a class="section-scroll" href="#num">実績</a></li>
@@ -76,13 +76,19 @@
           </div>
         </div>
       </nav>
+
       <section class="home-section home-fade home-full-height bg-dark-60 landing-header" id="home" data-background="img/hero1.jpg">
         <div class="titan-caption">
           <div class="caption-content">
             <div class="container">
               <div class="font-alt mb-30 titan-title-size-4">Scrango</div>
-              <div class="font-alt">Webから最新の情報抽出を自動化<br>次の時代のWEB解析・RPAツール</div>
+              <div class="font-alt titan-title-size-1 rotate">Webから最新の情報抽出を自動化 | 次の時代のWEB解析ツール | ページの変化を検出 | ブラウザからRPA | ホームページの解析・横断検索 | ホームページにコンシェルジュを常駐</div>
               <div class="font-alt mt-30"><a class="btn btn-border-w btn-circle" href="/admin/"><i class="glyphicon glyphicon-ok-sign"></i> 使ってみる</a></div>
+              <!--
+              <div class="font-alt mt-80">
+                <div class="large-text align-center"><a class="section-scroll" href="#services"><i class="fa fa-angle-down" style="color:white;"></i></a></div>
+              </div>
+              -->
             </div>
           </div>
         </div>
@@ -115,7 +121,7 @@
         <section class="module pb-0 bg-dark landing-reason parallax-bg" data-background="img/why_choose_bg.png">
           <div class="container">
             <div class="row">
-              <div class="col-sm-6"><img src="img/scrango.png" class="" alt=""></div>
+              <div class="col-sm-6"><img src="img/scrango.png" class="bounce" alt=""></div>
               <div class="col-sm-6">
                 <h2 class="module-title font-alt align-left">Webサイトからのデータ取得と集計</h2>
                 <p class="module-subtitle font-serif align-left">数千件の商品リスト、数分ごとの最新情報を自動で取得・集計<BR><BR>サイトマップ、ページ抽出、Webコンシェルジュを自動生成</p>
@@ -240,7 +246,7 @@
                 </div>
               </div>
               <div class="col-sm-6 col-md-3 col-lg-3">
-                <div class="price-table font-alt best">
+                <div class="price-table font-alt best bounce">
                   <h4>Advanced</h4>
                   <p class="small">おすすめ</p>
                   <div class="borderline"></div>
@@ -281,10 +287,126 @@
           </div>
         </section>
 
+        <section class="module bg-dark-60 landing-reason pt-0 pb-0 testimonial prallax-bg" data-background="img/why_choose_bg.png" style="background-image: url(&quot;img/why_choose_bg.png&quot;);" id="num">
+          <div class="testimonials-slider pt-140 pb-140">
+            <ul class="slides" style="width: 1000%; transition-duration: 0s; transform: translate3d(-5709px, 0px, 0px);">
+
+               <li class="clone" aria-hidden="true" style="width: 1903px; margin-right: 0px; float: left; display: block;">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                      <h2 class="module-title font-alt">実績</h2>
+                      <div class="module-subtitle font-serif"></div>
+                    </div>
+                  </div>
+                  <div class="row multi-columns-row">
+                    <div class="col-sm-6 col-md-3 col-lg-3">
+                      <div class="count-item mb-sm-40">
+                        <div class="count-icon"><span class="icon-wallet"></span></div>
+                        <h3 class="count-to font-alt" data-countto="12300">12300</h3>
+                        <h5 class="count-title font-serif">スクレイピングされたページ数</h5>
+                      </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 col-lg-3">
+                      <div class="count-item mb-sm-40">
+                        <div class="count-icon"><span class="icon-wine"></span></div>
+                        <h3 class="count-to font-alt" data-countto="8">8</h3>
+                        <h5 class="count-title font-serif">Cups of wine consumed</h5>
+                      </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 col-lg-3">
+                      <div class="count-item mb-sm-40">
+                        <div class="count-icon"><span class="icon-camera"></span></div>
+                        <h3 class="count-to font-alt" data-countto="5400">5400</h3>
+                        <h5 class="count-title font-serif">取得されたスクリーンショット数</h5>
+                      </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3 col-lg-3">
+                      <div class="count-item mb-sm-40">
+                        <div class="count-icon"><span class="icon-mobile"></span></div>
+                        <h3 class="count-to font-alt" data-countto="11000">11000</h3>
+                        <h5 class="count-title font-serif">操作されたフォーム数</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <li class="" data-thumb-alt="" style="width: 1903px; margin-right: 0px; float: left; display: block;">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-sm-12"> <div class="module-icon"><span class="icon-quote"></span></div> </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-8 col-sm-offset-2">
+                      <blockquote class="testimonial-text font-alt">これまでは競合他社の動向を毎日ブラウザでチェックしていましたが、ScranGoを導入してからは自動でメール通知されるようになりました</blockquote>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-4 col-sm-offset-4">
+                      <div class="testimonial-author">
+                        <div class="testimonial-caption font-alt">
+                          <div class="testimonial-title">yuma kaminaga</div>
+                          <div class="testimonial-descr">nebit.inc</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <li class="" data-thumb-alt="" style="width: 1903px; margin-right: 0px; float: left; display: block;">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-sm-12"> <div class="module-icon"><span class="icon-quote"></span></div> </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-8 col-sm-offset-2">
+                      <blockquote class="testimonial-text font-alt">ホームページからWebコンシェルジュが自動でつくられるなんて驚きです<br>彼女は私よりもこのホームページについてよく知っている</blockquote>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-4 col-sm-offset-4">
+                      <div class="testimonial-author">
+                        <div class="testimonial-caption font-alt">
+                          <div class="testimonial-title">yuma kaminaga</div>
+                          <div class="testimonial-descr">nebit.inc</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <li class="" data-thumb-alt="" style="width: 1903px; margin-right: 0px; float: left; display: block;">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-sm-12"> <div class="module-icon"><span class="icon-quote"></span></div> </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-8 col-sm-offset-2">
+                      <blockquote class="testimonial-text font-alt">当社HPに上がっているすべての人名・住所・メールアドレスの検索が一発でした<br>もしScranGoが無かったら、、考えたくもありません</blockquote>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-4 col-sm-offset-4">
+                      <div class="testimonial-author">
+                        <div class="testimonial-caption font-alt">
+                          <div class="testimonial-title">yuma kaminaga</div>
+                          <div class="testimonial-descr">nebit.inc</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+            </ul>
+          </div>
+        </section>
+
         <!--
-        <section class="module bg-dark-60" data-background="assets/images/section-6.jpg" style="background-image: url(&quot;assets/images/section-6.jpg&quot;);">
-        -->
-        <section class="module bg-dark-60 landing-reason parallax-bg" data-background="img/why_choose_bg.png" id="num">
+        <section class="module bg-dark-60 landing-reason" data-background="img/why_choose_bg.png" style="background-image: url(&quot;img/why_choose_bg.png&quot;);" id="num">
           <div class="container">
             <div class="row">
               <div class="col-sm-6 col-sm-offset-3">
@@ -324,10 +446,12 @@
             </div>
           </div>
         </section>
+        -->
+
         <section class="module" id="feature">
           <div class="container">
             <div class="col-sm-6 col-sm-offset-3">
-                <h2 class="module-title font-alt">Scrangoの特徴</h2>
+                <h2 class="module-title font-alt">その他の特徴</h2>
                 <div class="module-subtitle font-serif"></div>
               </div>
             <div class="row landing-image-text">
@@ -357,7 +481,7 @@
           <div class="container">
             <div class="row">
               <div class="col-sm-6 col-sm-offset-3">
-                <h2 class="module-title font-alt">お問い合わせ</h2>
+                <h2 class="module-title font-alt">お問い合わせ  <i class="glyphicon icon-envelope korokoro"></i></h2>
                 <div class="module-subtitle font-serif"></div>
               </div>
             </div>
