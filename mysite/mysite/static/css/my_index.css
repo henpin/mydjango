@@ -9,3 +9,70 @@
 .baseline{
     vertical-align: baseline !important;
 }
+
+
+.korokoro {
+  animation: korokoro 2.5s linear infinite 0s none running;
+}
+ 
+@keyframes korokoro {
+  0%   { transform: translate(0%, 0%); }
+  5%   { transform: translate(10%, 0%) rotate(10deg); }
+  25%  { transform: translate(20%, 0%) rotate(20deg); }
+  30%  { transform: translate(-10%, 0%) rotate(-10deg); }
+  35%  { transform: translate(-15%, 0%) rotate(-15deg); }
+  45%  { transform: translate(10%, 0%) rotate(10deg); }
+  50%  { transform: translate(15%, 0%) rotate(15deg); }
+  60%  { transform: translate(-5%, 0%) rotate(-5deg); }
+  65%  { transform: translate(-7%, 0%) rotate(-7deg); }
+  75%  { transform: translate(0%, 0%) rotate(0deg); }
+  100% { transform: translate(0%, 0%) rotate(0deg); }
+}
+
+
+.bounce {
+    animation:
+        bounce 2s ease infinite normal 0s none running
+    ;
+    -webkit-animation:
+        bounce 2s ease infinite normal 0s none running
+    ;
+    -ms-animation:
+        bounce 2s ease infinite normal 0s none running
+    ;
+}
+@keyframes bounce {
+    0%, 100%, 20%, 50%, 80% {
+        transform: translateY(0px);
+    }
+    40% {
+        transform: translateY(-30px);
+    }
+    60% {
+        transform: translateY(-15px);
+    }
+}
+@-webkit-keyframes bounce {
+    0%, 100%, 20%, 50%, 80% {
+        transform: translateY(0px);
+    }
+    40% {
+        transform: translateY(-30px);
+    }
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+.buruburu {
+    display: inline-block;
+    animation: hurueru 0.2s  infinite;
+}
+
+@keyframes hurueru {
+    0% {transform: translate(0px, 0px) rotateZ(0deg)}
+    25% {transform: translate(2px, 2px) rotateZ(1deg)}
+    50% {transform: translate(0px, 2px) rotateZ(0deg)}
+    75% {transform: translate(2px, 0px) rotateZ(-1deg)}
+    100% {transform: translate(0px, 0px) rotateZ(0deg)}
+}
