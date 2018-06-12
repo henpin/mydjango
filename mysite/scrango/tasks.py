@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from celery import shared_task
-from .models import CrawlerData, ScraperData, ResultData, ActionData
+from .models import ScraperData, ScraperInfoData, ResultData, ActionData
 from .models import ChatAPIData, SlackAPIData, ChatworkAPIData
 from django.conf import settings
 from django.utils import timezone
@@ -29,30 +29,30 @@ IMAGE_UTILS = ImageUtil()
 
 
 @shared_task
-def do_scrape(crawler_data):
+def do_scrape(scraper_data):
     """ スクレイピングをする """
     log = [] # ログリスト
     log.append("スクレイピングを開始しました")
     try:
         # 状態変遷
-        crawler_data.state = "executing" # 状態-> 実行中
-        crawler_data.last_execute_time = timezone.now() # 最終実行時間-> 今
-        crawler_data.save()
+        scraper_data.state = "executing" # 状態-> 実行中
+        scraper_data.last_execute_time = timezone.now() # 最終実行時間-> 今
+        scraper_data.save()
 
         log.append("スクレイピング情報を取得中...")
         # スクレイピングデータ取得
-        url = crawler_data.url
-        screenshot_size = crawler_data.screenshot # スクリーンショット取るか否か
-        user_agent = crawler_data.user_agent # ユーザーエージェント
+        url = scraper_data.url
+        screenshot_size = scraper_data.screenshot # スクリーンショット取るか否か
+        user_agent = scraper_data.user_agent # ユーザーエージェント
 
-        log.append("スクレイパーを構築中...")
+        log.append("スクレイパーを初期化中...")
         # クローラーからアクション抽出
         action_list = [
             FormAction( # アクションデータをフォームアクション化
                 a.selector
                 ,a.action_type
                 ,a.content
-            ) for a in ActionData.objects.filter(crawler=crawler_data) if a.valid # only valid
+            ) for a in ActionData.objects.filter(scraper=scraper_data) if a.valid # only valid
         ]
 
         # JSパーシング済みHTML取得
@@ -82,7 +82,8 @@ def do_scrape(crawler_data):
                 filename = None # ダミー
 
         # コマンドノードツリー生成
-        root = gen_commandNodeTree(crawler_data)
+        log.append("セレクタ情報を構築中...")
+        root = gen_commandNodeTree(scraper_data)
 
         # スクレイピング
         log.append("情報抽出中...")
@@ -94,7 +95,7 @@ def do_scrape(crawler_data):
         # 通知
         log.append("通知連携処理中...")
         notificate_it(
-            crawler_data,
+            scraper_data,
             scraper.get_result(),
             filename,
             )
@@ -102,7 +103,7 @@ def do_scrape(crawler_data):
         # リザルトオブジェクト
         log.append("スクレイピングが完了しました")
         ResultData(
-            crawler = crawler_data,
+            scraper = scraper_data,
             json = jsoned,      # 結果JSON
             result = "success",
             screenshot = filename, # スクリーンショットURL
@@ -110,8 +111,8 @@ def do_scrape(crawler_data):
             ).save() # 保存
 
         # 状態変遷
-        crawler_data.state = "active"
-        crawler_data.save()
+        scraper_data.state = "active"
+        scraper_data.save()
 
         return jsoned
 
@@ -126,29 +127,29 @@ def do_scrape(crawler_data):
 
         # 通知
         log.append("通知連携処理中...")
-        notificate_it(crawler_data, result_data, error=True) # 失敗なら強制通知
+        notificate_it(scraper_data, result_data, error=True) # 失敗なら強制通知
 
         # 結果の保存
         log.append("スクレイピングが完了しました")
         ResultData(
-            crawler = crawler_data,
+            scraper = scraper_data,
             json = json.dumps(result_data),
             result = "failure",
             log = "\n".join(log) # ログデータ保存
             ).save() # 保存
 
         # 状態変遷
-        crawler_data.state = "error" # 状態-> エラー
-        crawler_data.save()
+        scraper_data.state = "error" # 状態-> エラー
+        scraper_data.save()
 
         return json.dumps(result_data)
 
 
-def notificate_it(crawler_data,result_data,filename="",error=False):
+def notificate_it(scraper_data,result_data,filename="",error=False):
     """ 通知する"""
     # 通知周りの情報を抜く
-    notification = crawler_data.notification.convert2entity() if crawler_data.notification else None # 通知先 : 具象クラスに落とす
-    notification_cond = crawler_data.notification_cond # 通知条件
+    notification = scraper_data.notification.convert2entity() if scraper_data.notification else None # 通知先 : 具象クラスに落とす
+    notification_cond = scraper_data.notification_cond # 通知条件
 
     # 通知できるか判定
     if not notification :
@@ -161,7 +162,7 @@ def notificate_it(crawler_data,result_data,filename="",error=False):
         pass
     elif notification_cond == "changed":
         # 最終取得結果抜く
-        results = ResultData.objects.filter(crawler=crawler_data).order_by('-datetime')
+        results = ResultData.objects.filter(scraper=scraper_data).order_by('-datetime')
         if len(results) >=2:
             last_result = results[1] # 1こ前
             last_result_dic = json.loads(last_result.json or "") # 辞書に復元
@@ -170,7 +171,7 @@ def notificate_it(crawler_data,result_data,filename="",error=False):
                 return # 一緒なら通知しない
     elif notification_cond in ("ss_changed","ss_changed2"):
         # 最終取得結果からss抜く
-        results = ResultData.objects.filter(crawler=crawler_data).order_by('-datetime')
+        results = ResultData.objects.filter(scraper=scraper_data).order_by('-datetime')
         if len(results) >= 2:
             last_result = results[1] # 1こ前
             last_result_ss = str(last_result.screenshot)
@@ -188,7 +189,7 @@ def notificate_it(crawler_data,result_data,filename="",error=False):
                     return # 閾値委譲なら通知しない
 
     # メッセージ作成
-    message = create_notification_message(crawler_data.name, result_data)
+    message = create_notification_message(scraper_data.name, result_data)
 
     # slack通知処理
     if isinstance(notification,SlackAPIData):
@@ -227,10 +228,10 @@ def notificate_it(crawler_data,result_data,filename="",error=False):
         chatwork.send_message(message)
 
 
-def create_notification_message(crawler_name,result_data):
+def create_notification_message(scraper_name,result_data):
     """ 抽出済みJSON元データから、通知に耐えうるデータに変換する"""
     # 再帰ジェネレータでｶﾞﾝｶﾞﾝやってyieldする
-    return (u"スクレイピング「%s」を実行しました。\n\n" % (crawler_name)) +u"\n".join(item2message(result_data))
+    return (u"スクレイピング「%s」を実行しました。\n\n" % (scraper_name)) +u"\n".join(item2message(result_data))
 
 
 def item2message(item,prefix="",indent=-1):
@@ -260,28 +261,27 @@ def item2message(item,prefix="",indent=-1):
 
 
 
-def gen_commandNodeTree(crawler_data):
+def gen_commandNodeTree(scraper_data):
     """ クローラーからコマンドノード生成す"""
     # コマンドノード作る 
     root = ScraperCommand("root",None)
 
     # クローラーに関連づいたすべてのスクレイパ情報からコマンドツリー作る
     tmp_dict = dict() # { scraper_data : commandNode }
-    for scraper_data in ScraperData.objects.filter(crawler=crawler_data, valid=True) :
+    for scraperInfo_data in ScraperInfoData.objects.filter(scraper=scraper_data, valid=True) :
         # 情報取得
-        name = scraper_data.name
-        selector = scraper_data.selector
-        target = scraper_data.target
+        name = scraperInfo_data.name
+        selector = scraperInfo_data.selector
+        target = scraperInfo_data.target
         # 再帰クローラー検索
-        r_crawler_name = scraper_data.crawler_name
-        if r_crawler_name :
-            r_crawler = CrawlerData.objects.get(name=r_crawler_name) 
+        r_scraper_name = scraperInfo_data.scraper_name
+        if r_scraper_name :
+            r_scraper = scraperData.objects.get(name=r_scraper_name) 
         else :
-            r_crawler = None
-        #master_scraper = scraper_data.master_scraper
+            r_scraper = None
 
         # コマンド組み立て
-        command = gen_command(target,r_crawler,crawler_data.url)
+        command = gen_command(target,r_scraper,scraper_data.url)
         # フィルタラ組み立て
         filterer = gen_filterer(selector)
 
@@ -291,7 +291,7 @@ def gen_commandNodeTree(crawler_data):
     # 関連付け
     for key,val in tmp_dict.items():
         # 親読む
-        master_scraper = ScraperData.objects.get(crawler=crawler_data, name=key).master_scraper
+        master_scraper = ScraperInfoData.objects.get(scraper=scraper_data, name=key).master_scraper
 
         # マスターがあればそこにつける
         if master_scraper :
@@ -304,7 +304,7 @@ def gen_commandNodeTree(crawler_data):
     return root
 
 
-def gen_command(target, crawler=None, url_prefix=""):
+def gen_command(target, scraper=None, url_prefix=""):
     """ コマンド作り出す"""
     def command(tag):
         try:
@@ -321,12 +321,12 @@ def gen_command(target, crawler=None, url_prefix=""):
                 elif target == "href":
                     href = _tag["href"]
                     # 再帰クローラーがあれば再帰処理
-                    if crawler and href :
+                    if scraper and href :
                         # 絶対パス化
                         href_abs = urlparse.urljoin(url_prefix, href)
                         print href_abs
                         # ノードツリー生成
-                        root = gen_commandNodeTree(crawler)
+                        root = gen_commandNodeTree(scraper)
                         # スクレイパ生成
                         scraper = CommandNodeScraper()
                         scraper.parse_fromURL(href_abs)
@@ -366,16 +366,16 @@ def apply_shcedule():
     #now = datetime.datetime.now()
     now = timezone.now()
     # 繰り返しフラグの立つている全クローラを検索
-    for crawler_data in CrawlerData.objects.all() :
-        if crawler_data.repetition :
+    for scraper_data in ScraperData.objects.all() :
+        if scraper_data.repetition :
             # 最終実行時間
-            last_execute_time = crawler_data.last_execute_time # エラるのでTZ無視
-            repetition = int(crawler_data.repetition) # 繰り返し間隔sec
+            last_execute_time = scraper_data.last_execute_time # エラるのでTZ無視
+            repetition = int(scraper_data.repetition) # 繰り返し間隔sec
 
             # 計算 : 最終実行時間が今からrepetition秒前の時間より前か
             if ( not last_execute_time ) or ( now -last_execute_time > datetime.timedelta(seconds=repetition) ):
                 # クローリングする
-                do_scrape.delay(crawler_data)
+                do_scrape.delay(scraper_data)
                 print "do delay"
 
 

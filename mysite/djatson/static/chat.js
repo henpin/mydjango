@@ -6,7 +6,7 @@
 var WS_ID = {{ WS_ID }};
 
 // Ajax URL
-var CONV_URL = "/djatson/kaminaga/conversation/"; // カンバゼーションAjaxエンドポイント
+var CONV_URL = "/djatson/conversation/"; // カンバゼーションAjaxエンドポイント
 
 /**
 * ワトソン呼び出し関数

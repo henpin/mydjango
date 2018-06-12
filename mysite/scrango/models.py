@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
-from mysite.models import GeneralModel
+from mysite.models import GeneralModel, GeneralLogModel
 import uuid
 
 # User Agents
@@ -42,7 +42,7 @@ class ChatAPIData(GeneralModel):
 
 class SlackAPIData(ChatAPIData):
     """ スラック連携API """
-    webhook_url = models.CharField("Webhook URL",max_length=1024) # テキスト用
+    webhook_url = models.URLField("Webhook URL")
     token = models.CharField("Token(画像送信API)",max_length=512, blank=True, null=True) # 画像用
     channel_id = models.CharField("ChannelID(画像送信API)",max_length=255, blank=True, null=True) # 画像用
     
@@ -53,8 +53,8 @@ class ChatworkAPIData(ChatAPIData):
 
 
 # Create your models here.
-class CrawlerData(GeneralModel):
-    """ クローラーデータ """
+class ScraperData(GeneralModel):
+    """ スクレイパーデータ """
     STATE_LIST = (
         ("executing","実行中"),
         ("active","正常"),
@@ -98,8 +98,7 @@ class CrawlerData(GeneralModel):
     ) # 通知条件リスト
 
     name = models.CharField("名前",max_length=255)
-    description = models.CharField("説明", blank=True, null=True, max_length=1024)
-    url = models.CharField("URL",max_length=512, blank=True, null=True)
+    url = models.URLField("URL", blank=True, null=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
     repetition = models.CharField("定期実行", max_length=64, choices=REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
     screenshot = models.CharField("スクリーンショット", choices=SCREENSHOT_SIZE_LIST ,max_length=64, blank=True) # 必須ブーリアン
@@ -115,7 +114,7 @@ class CrawlerData(GeneralModel):
 
     def short_url(self):
         """ 短いURL """
-        return truncatechars(self.url, 80)
+        return truncatechars(self.url.decode("utf-8"), 80)
 
 
 class ActionData(models.Model):
@@ -129,7 +128,7 @@ class ActionData(models.Model):
         ("drag_and_drop","ドラッグアンドドロップ"),
         ("upload_file","ファイルアップロード")
     )
-    crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # クローラーに対してフォーリングキー
+    scraper = models.ForeignKey(ScraperData, on_delete=models.CASCADE) # クローラーに対してフォーリングキー
     selector = models.CharField("操作対象name属性", blank=True, null=True, max_length=255)
     action_type = models.CharField("アクションタイプ", max_length=64, choices=ACTION_TYPE_LIST, default="") # アクションの詳細
     content = models.CharField("入力内容", max_length=64, blank=True, null=True) # 入力内容
@@ -140,7 +139,7 @@ class ActionData(models.Model):
         return self.description or u"操作コマンド"
 
 
-class ScraperData(models.Model):
+class ScraperInfoData(models.Model):
     """ スクレイパーデータ"""
     TARGET_LIST = (
         ("","見つけるだけ"),
@@ -152,28 +151,20 @@ class ScraperData(models.Model):
 
     selector = models.CharField("CSSセレクタ",max_length=255)
     target = models.CharField("取得対象", max_length=64, choices=TARGET_LIST, default="html", blank=True, null=True) # 属性
-    crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # クローラーに対してフォーリングキー
+    scraper = models.ForeignKey(ScraperData, on_delete=models.CASCADE) # クローラーに対してフォーリングキー
     master_scraper = models.ForeignKey("self",verbose_name="これを見つけたら実行",null=True,blank=True, on_delete=models.PROTECT) # 従属的スクレイパ
     name = models.CharField("名前",max_length=255)
-    crawler_name = models.CharField("クローラー名",max_length=255,blank=True) # 再帰的クローラー名
+    scraper_name = models.CharField("スクレイパー名",max_length=255,blank=True) # 再帰的クローラー名
     valid = models.BooleanField("有効", default=True) # 有効/無効
 
     def __unicode__(self):
         return self.name
 
-class ResultData(models.Model):
+class ResultData(GeneralLogModel):
     """ スクレイピング結果 """
-    RESULT_LIST = (
-        ("success","正常終了"),
-        ("failure","失敗"),
-    )
-
-    crawler = models.ForeignKey(CrawlerData, on_delete=models.CASCADE) # 生成元クローラー
-    datetime = models.DateTimeField("実行時間",default=timezone.now) # 実行時間
+    scraper = models.ForeignKey(ScraperData, on_delete=models.CASCADE) # 生成元クローラー
     json = models.TextField(blank=True) # 解析結果JSON
-    result = models.CharField("可否", max_length=64, choices=RESULT_LIST, default="", blank=True) # 属性
     screenshot = models.ImageField(upload_to="images/",null=True,blank=True)
-    log = models.TextField(blank=True,null=True) # ログデータ
 
     class Meta:
         ordering = ('-datetime',)
