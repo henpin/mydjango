@@ -114,7 +114,7 @@ class ScraperData(GeneralModel):
 
     def short_url(self):
         """ 短いURL """
-        return truncatechars(self.url.decode("utf-8"), 80)
+        return truncatechars(str(self.url), 80)
 
 
 class ActionData(models.Model):
