@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets
-from .models import CrawlerData, ScraperData, ResultData
+from .models import ScraperData, ScraperInfoData, ResultData
 
 import tasks
 
@@ -22,22 +22,22 @@ TEMPLATE_JSON_JS_PATH = os.path.dirname(os.path.abspath(__file__)) + '/static/vi
 def do_scrape(req,_uuid):
     """ スクレイピングする """
     # データ取得
-    crawler_data = get_object_or_404(CrawlerData, uuid=_uuid)
+    scraper_data = get_object_or_404(ScraperData, uuid=_uuid)
 
     # 状態変遷
-    if crawler_data.url :
+    if scraper_data.url :
         # 状態変遷
-        crawler_data.state = "executing" # 状態-> エラー
-        crawler_data.save()
+        scraper_data.state = "executing" # 状態-> エラー
+        scraper_data.save()
         # スクレイピング開始
-        tasks.do_scrape.delay(crawler_data)
+        tasks.do_scrape.delay(scraper_data)
     else :
         # 状態変遷
-        crawler_data.state = "error" # 状態-> エラー
-        crawler_data.save()
+        scraper_data.state = "error" # 状態-> エラー
+        scraper_data.save()
 
     # adminにリダイレクト
-    return HttpResponseRedirect('/admin/scrango/crawlerdata/')
+    return HttpResponseRedirect('/admin/scrango/scraperdata/')
 
 class ViewResultView(generic.TemplateView):
     """ 結果ビューjhHTMLを描画 """
@@ -48,15 +48,15 @@ class ViewResultView(generic.TemplateView):
         context = super(ViewResultView, self).get_context_data(**kwargs)
         # データ取得
         _uuid = kwargs["_uuid"]
-        context['object'] = get_object_or_404(CrawlerData,uuid=_uuid)
+        context['object'] = get_object_or_404(ScraperData,uuid=_uuid)
 
         return context
 
 def get_view_result_js(req, _uuid):
     """ jsonビュアーJSの生成 """
     # データ取得
-    crawler_data = get_object_or_404(CrawlerData, uuid=_uuid)
-    last_result = ResultData.objects.filter(crawler=crawler_data).order_by("-datetime")[0] # リザルトとる
+    scraper_data = get_object_or_404(ScraperData, uuid=_uuid)
+    last_result = ResultData.objects.filter(scraper=scraper_data).order_by("-datetime")[0] # リザルトとる
     json_data = last_result.json.replace(u"\\",u"\\\\").replace(u"'",u"\\'")
 
     # JS生成
@@ -76,10 +76,10 @@ class ScrapeAPIViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         """ Getメソッド処理"""
         # データ取得
-        crawler_data = get_object_or_404(CrawlerData, uuid=pk)
+        scraper_data = get_object_or_404(ScraperData, uuid=pk)
 
         # スクレイピング開始
-        result = tasks.do_scrape(crawler_data)
+        result = tasks.do_scrape(scraper_data)
 
         # JSONなのでそのまま返す
         return Response(result)

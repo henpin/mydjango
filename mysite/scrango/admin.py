@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.http import HttpResponseRedirect, HttpResponse
 # Models
-from .models import CrawlerData, ScraperData, ResultData, ActionData
+from .models import ScraperData, ScraperInfoData, ResultData, ActionData
 from .models import SlackAPIData, ChatworkAPIData
 # modules
 from .apps import gen_url
@@ -13,9 +13,9 @@ from .apps import gen_url
 from django_admin_row_actions import AdminRowActionsMixin
 
 # Register your models here.
-class ScraperDataInline(admin.TabularInline):
+class ScraperInfoDataInline(admin.TabularInline):
     """ スクレイパーデータテーブル """
-    model = ScraperData
+    model = ScraperInfoData
     extra = 3
 
 class ResultDataInline(admin.TabularInline):
@@ -30,18 +30,18 @@ class ActionDataInline(admin.TabularInline):
     extra = 5
 
 
-class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
+class ScraperDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     """ クローラーデータAdmin """
     # アクション
     actions = [
     ]
     # 並べる
     inlines = [
-        ScraperDataInline,
+        ScraperInfoDataInline,
         ActionDataInline,
         ResultDataInline,
         ]
-    list_display = ("name","description","short_url","state","repetition","screenshot","notification","last_execute_time")
+    list_display = ("name","short_url","state","repetition","screenshot","notification","last_execute_time")
 
     def get_row_actions(self, item):
         """ プラグイン用行アクション """
@@ -77,6 +77,6 @@ class ChatworkAPIDataAdmin(admin.ModelAdmin):
     pass
 
 # Register your models here.
-admin.site.register(CrawlerData, CrawlerDataAdmin)
+admin.site.register(ScraperData, ScraperDataAdmin)
 admin.site.register(SlackAPIData, SlackAPIDataAdmin)
 admin.site.register(ChatworkAPIData, ChatworkAPIDataAdmin)
