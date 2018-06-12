@@ -19,14 +19,20 @@ from django_admin_row_actions import AdminRowActionsMixin
 class DjatsonLogDataInline(admin.TabularInline):
     """ ジャトソンログ """
     model = DjatsonLogData
+    extra = 0
+    max_num = 20
 
 class CrawlingLogDataInline(admin.TabularInline):
     """ クローリングログ """
     model = CrawlingLogData
+    extra = 0
+    max_num = 20
 
 class HtmlDataInline(admin.TabularInline):
     """ HTMLデータ """
     model = HtmlData
+    extra = 0
+    max_num = 20
 
 
 class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
@@ -48,6 +54,8 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         url_for_json = gen_url("view_json",item.name)
         url_for_chat = gen_url("chat",item.name)
         url_for_initialize = gen_url("initialize",item.name)
+        url_for_crawl = gen_url("crawl",item.name)
+        url_for_json2 = gen_url("view_json2",item.name)
         row_actions = [
             {
                 'label': '解析結果を表示',
@@ -60,7 +68,15 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             {
                 'label': 'watsonとしゃべる',
                 'url' : url_for_chat
-            }
+            },
+            {
+                'label': 'クロールする',
+                'url' : url_for_crawl
+            },
+            {
+                'label': 'クロール結果を見る',
+                'url' : url_for_json2
+            },
         ]
 
         return row_actions

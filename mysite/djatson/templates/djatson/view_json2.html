@@ -1,0 +1,24 @@
+{% load static %}
+<html>
+<head>
+    <title>クロール結果JSON眺める</title>
+
+    <!-- css -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+
+    <!-- js -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+    <!-- view json css -->
+    <link href="{% static 'view_json.css' %}" rel="stylesheet"></link>
+    <!-- view json js -->
+    <script src="/djatson/view_json2/{{ name }}.js"></script>
+
+</head>
+<body>
+    <h1>JSONを眺める</h1>
+    <a class="btn btn-default col-sm-12" href="#" onclick="javascript:window.history.back(-1);return false;">戻る</a>
+    <div id="result"></div>
+</body>
+</html>

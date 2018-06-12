@@ -38,5 +38,6 @@ class CrawlingLogData(GeneralLogModel):
 class HtmlData(models.Model):
     """ HTMLデータ"""
     crawlinglog = models.ForeignKey(CrawlingLogData, on_delete=models.CASCADE) # クロールログに対して保存
+    url = models.URLField("URL")
     html = models.TextField(blank=True, null=True) # HTMLデータ
 
