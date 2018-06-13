@@ -15,8 +15,15 @@ from rest_framework import viewsets
 
 from .models import CrawlerData, DjatsonLogData, CrawlingLogData, HtmlData
 
+import itertools
+
 from watson_api.watson_interface import WatsonInterface
+from gcp_interface import GCPInterface
 import tasks
+
+
+# Static Instance
+GCPINTERFACE = GCPInterface()
 
 # JS template file
 TEMPLATE_CHAT_JS_PATH = os.path.dirname(os.path.abspath(__file__)) + '/static/chat.js'
@@ -178,6 +185,49 @@ class CrawlActionVS(viewsets.ViewSet):
         # adminにリダイレクト
         return HttpResponseRedirect('/admin/djatson/crawlerdata/')
 
+class CrossSearchAPIVS(viewsets.ViewSet):
+    """ 横断検索APIビューセット"""
+    def retrieve(self, request, pk=None):
+        """ Getメソッド処理"""
+        # データ取得
+        crawler_data = get_object_or_404(CrawlerData, name=pk)
+        log_data = CrawlingLogData.objects.filter(crawler=crawler_data).latest("datetime") # 最新のログ
+        html_data_list = HtmlData.objects.filter(crawlinglog=log_data) # ログから全HTMLデータ抜く
 
+        # パラメータから検索対象取得
+        search_type = request.GET.get("type")
+
+        # 解析関数生成
+        analyse_func = None
+
+        if search_type == "person":
+            # 人名抽出
+            analyse_func = lambda html : GCPINTERFACE.analyse_html(html_data.html).extract_personPhrase()
+
+        elif search_type == "place":
+            # 地名抽出
+            analyse_func = lambda html : GCPINTERFACE.analyse_html(html_data.html).extract_placePhrase()
+
+        elif search_type == "organization":
+            # 組織名抽出
+            analyse_func = lambda html : GCPINTERFACE.analyse_html(html_data.html).extract_organizationPhrase()
+
+        # 解析してJSON化して返す
+        if analyse_func:
+            result = dict()
+            for html_data in html_data_list :
+                # データ抜く
+                url = html_data.url
+                html = html_data.html
+
+                # 解析してフレーズ抜いて保存
+                result[url] = analyse_func(html)
+
+            # JSON化してリターン
+            jsoned = json.dumps(result,ensure_ascii=False)
+            return Response(jsoned.replace(u"\\",u"\\\\").replace(u"'",u"\\'"))
+
+        else :
+            return Response("ERROR")
 
 
