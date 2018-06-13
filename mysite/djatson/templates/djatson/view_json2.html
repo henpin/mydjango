@@ -51,10 +51,16 @@
 
         // commit ajax
         function do_ajax(id,title){
+            // show kurukuru
             $("#loader").show();
+            // url for ajax
+            var url = "/djatson/api/cross_search/{{ name }}" +"?type=" +id;
+            console.log(url)
+
+            // do ajax
             $.ajax({ // do ajax
                 type : "GET",
-                url : "/djatson/api/cross_search/{{ name }}" +"?type=" +id
+                url : url
             })
             .done( (data) => {
                 $("#loader").hide();
