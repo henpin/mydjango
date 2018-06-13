@@ -9,7 +9,7 @@ JSONDATA = '{{ JSON }}';
 
 
 /* main */
-var main = function(jsonStr){
+function show_json(jsonStr){
     // 生成先セレクタ
     var selector = "#result";
     // レンダリング病がいき
@@ -133,5 +133,5 @@ var _escape = function(ch) {
 }
 
 // 起動時ジッコウ
-$(function(){ new main(JSONDATA); })
+$(function(){ new show_json(JSONDATA); })
 

@@ -5,6 +5,35 @@
 
     <!-- css -->
     <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <style type="text/css">
+        #loader {
+            position: absolute;
+            width: 100px; /*ローディングアイコンの横サイズ*/
+            height: 100px; /*ローディングアイコンの縦サイズ*/
+            border-radius: 100px;  /*CSS3で円を書く*/
+            border: 8px solid #17cddd;  /*円に枠をつける*/
+            border-right-color: transparent; /*円の右にC状の空きをつける*/
+            margin: auto;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            -webkit-animation: spin 1s infinite linear; /*回転のアニメーションをつける*/
+            -moz-animation: spin 1s infinite linear;
+        }
+         /*キーフレームのアニメーションをつける*/
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); opacity: 0.4; }
+            50%  { -webkit-transform: rotate(180deg); opacity: 1; }
+            100%   { -webkit-transform: rotate(360deg); opacity: 0.4; }
+        }
+        @-moz-keyframes spin {
+            0% { -moz-transform: rotate(0deg); opacity: 0.4; }
+            50%  { -moz-transform: rotate(180deg); opacity: 1; }
+            100%   { -moz-transform: rotate(360deg); opacity: 0.4; }
+        }
+    </style>
 
     <!-- js -->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
@@ -15,10 +44,56 @@
     <!-- view json js -->
     <script src="/djatson/view_json2/{{ name }}.js"></script>
 
+    <!-- ajax -->
+    <script>
+        // init ajax
+        $(document).ajaxSend(function(t,e,o){var n,c,i,r;r=o.type,/^(GET|HEAD|OPTIONS|TRACE)$/.test(r)||(n=o.url,c="//"+document.location.host,i=document.location.protocol+c,n!=i&&n.slice(0,i.length+1)!=i+"/"&&n!=c&&n.slice(0,c.length+1)!=c+"/"&&/^(\/\/|http:|https:).*/.test(n))||e.setRequestHeader("X-CSRFToken",function(t){var e=null;if(document.cookie&&""!=document.cookie)for(var o=document.cookie.split(";"),n=0;n<o.length;n++){var c=$.trim(o[n]);if(c.substring(0,t.length+1)==t+"="){e=decodeURIComponent(c.substring(t.length+1));break}}return e}("csrftoken"))});
+
+        // commit ajax
+        function do_ajax(id,title){
+            $("#loader").show();
+            $.ajax({ // do ajax
+                type : "GET",
+                url : "/djatson/api/cross_search/{{ name }}" +"?type=" +id
+            })
+            .done( (data) => {
+                $("#loader").hide();
+                show_json(data); // show json
+                $("#title").text("横断検索: 「"+title+"」"); // タイトル設定
+                //$("#result").val(data); // insert result text
+            })
+            .error( (data) =>{ alert("エラー。横断検索に失敗しました") } )
+        }
+
+        // init
+        $(function(){
+            // add events
+            ["person", "place", "mail", "organization"].forEach( id => {
+                $("#"+id).click(function(){ do_ajax(id,$(this).val()) });
+            })
+        })
+    </script>
+
 </head>
 <body>
-    <h1>JSONを眺める</h1>
-    <a class="btn btn-default col-sm-12" href="#" onclick="javascript:window.history.back(-1);return false;">戻る</a>
-    <div id="result"></div>
+    <div id="loader" style="display:none"></div>
+    <div class="section">
+        <div class="container">
+            <h1>横断検索</h1>
+            <div class="row">
+                <input class="btn btn-primary" type="button" id="person" value="人名">
+                <input class="btn btn-primary" type="button" id="place" value="地名">
+                <input class="btn btn-primary" type="button" id="organization" value="組織名">
+                <input class="btn btn-primary" type="button" id="mail" value="メールアドレス(未実装)">
+            </div>
+        </div>
+    </div>
+    <div class="section">
+        <div class="container">
+            <h1><span id="title">クローリング結果</span>を眺める</h1>
+            <a class="btn btn-default col-sm-12" href="#" onclick="javascript:window.history.back(-1);return false;">戻る</a>
+            <div id="result"></div>
+        </div>
+    </div>
 </body>
 </html>
