@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
-from mysite.models import GeneralModel, GeneralLogModel
+from mysite.models import GeneralModel, GeneralLogModel, GeneralModelWithUUID
 import uuid
 
 # User Agents
@@ -17,7 +17,7 @@ UA_IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_2_5 like Mac OS X) AppleWebKi
 
 
 # API Data
-class ChatAPIData(GeneralModel):
+class ChatAPIData(GeneralModelWithUUID):
     """ チャットAPIデータ基底モデル """
     user_name = models.CharField("ユーザー名",max_length=128, blank=True, null=True)
     description = models.CharField("説明",max_length=512,blank=True,null=True)
@@ -26,20 +26,24 @@ class ChatAPIData(GeneralModel):
         return self.user_name
 
     def convert2entity(self):
-        """ 実クラスに戻す"""
-        # スラックAPIデータから探す
-        qs = SlackAPIData.objects.filter(id=self.id)
-        if len(qs):
-            # あればそれを返す
-            return qs[0]
+        """ 
+        実クラスに戻す
+        TODO : メタ文字つけておいてそれベースで振る。ちょっとこれだとコスト高い
+        """
+        # クエリ作る
+        qs_list = [
+            SlackAPIData.objects.filter(id=self.id),
+            ChatworkAPIData.objects.filter(id=self.id),
+            TwitterAPIData.objects.filter(id=self.id),
+            LineAPIData.objects.filter(id=self.id),
+        ]
 
-        else :
-            # さもなくばChatworkAPIDataから抜く
-            qs = ChatworkAPIData.objects.filter(id=self.id)
-            if len(qs):
-                return qs[0]
-
-
+        # ダサいが全QS調べる
+        for q in qs_list :
+            if q :
+                # あればそれを返す
+                return q[0]
+                
 class SlackAPIData(ChatAPIData):
     """ スラック連携API """
     webhook_url = models.URLField("Webhook URL")
@@ -50,6 +54,18 @@ class ChatworkAPIData(ChatAPIData):
     """ チャットワーク連携API """
     api_key = models.CharField("API Token",max_length=255)
     roomid = models.CharField("roomid",max_length=128)
+
+class TwitterAPIData(ChatAPIData):
+    """ ツイッター連携 """
+    consumer_key = models.CharField("Consumer Key",max_length=255)
+    consumer_secret = models.CharField("Consumer Secret",max_length=255)
+    access_token = models.CharField("Access Token",max_length=255)
+    access_token_secret = models.CharField("Access Token Secret",max_length=255)
+
+class LineAPIData(ChatAPIData):
+    """ Line連携 """
+    access_token = models.CharField("アクセストークン",max_length=255)
+    
 
 
 # Create your models here.

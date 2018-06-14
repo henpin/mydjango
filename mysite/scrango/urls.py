@@ -5,7 +5,8 @@ from . import views
 
 # restframework Router
 router = DefaultRouter()
-router.register(r'scrape',views.ScrapeAPIViewSet,base_name="scrape") # APIでクローラーVSにルーティング
+router.register(r'scrape',views.ScrapeAPIVS,base_name="scrape") # APIでクローラーVSにルーティング
+router.register(r'notification_test',views.NotificationTestAPIVS,base_name="notification_test") # APIでクローラーVSにルーティング
 
 urlpatterns = [
     url(r'^api/', include(router.urls)), # restframework rooter

@@ -74,7 +74,7 @@
         // init
         $(function(){
             // add events
-            ["person", "place", "mail", "organization"].forEach( id => {
+            ["person", "place", "mail", "organization", "phone"].forEach( id => {
                 $("#"+id).click(function(){ do_ajax(id,$(this).val()) });
             })
         })
@@ -90,7 +90,8 @@
                 <input class="btn btn-primary" type="button" id="person" value="人名">
                 <input class="btn btn-primary" type="button" id="place" value="地名">
                 <input class="btn btn-primary" type="button" id="organization" value="組織名">
-                <input class="btn btn-primary" type="button" id="mail" value="メールアドレス(未実装)">
+                <input class="btn btn-primary" type="button" id="mail" value="メールアドレス">
+                <input class="btn btn-primary" type="button" id="phone" value="電話番号">
             </div>
         </div>
     </div>

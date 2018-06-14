@@ -4,12 +4,20 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+import uuid
 
 class GeneralModel(models.Model):
     """ 汎用モデル """
     created_at = models.DateTimeField("作成日時", auto_now=True)
     created_by = models.ForeignKey(User, blank=True, null=True, editable=False)
     #updated_at = models.DateTimeField(u'更新日時', auto_now=True)
+
+    class Meta:
+        abstract = True
+
+class GeneralModelWithUUID(GeneralModel):
+    """ UUID搭載汎用モデル """
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False) # UUIDもたせちゃう
 
     class Meta:
         abstract = True
@@ -27,3 +35,4 @@ class GeneralLogModel(models.Model):
 
     class Meta:
         abstract = True
+

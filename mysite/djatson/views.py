@@ -16,7 +16,9 @@ from rest_framework import viewsets
 from .models import CrawlerData, DjatsonLogData, CrawlingLogData, HtmlData
 
 import itertools
+from bs4 import BeautifulSoup
 
+from bs_utils import BSUtil
 from watson_api.watson_interface import WatsonInterface
 from gcp_interface import GCPInterface
 import tasks
@@ -211,6 +213,15 @@ class CrossSearchAPIVS(viewsets.ViewSet):
         elif search_type == "organization":
             # 組織名抽出
             analyse_func = lambda html : GCPINTERFACE.analyse_html(html_data.html).extract_organizationPhrase()
+
+        elif search_type == "mail":
+            # メールアドレス抜く
+            analyse_func = lambda html : BSUtil().parse(html).extract_phrase("mail_address")
+
+        elif search_type == "phone":
+            # 電話番号
+            analyse_func = lambda html : BSUtil().parse(html).extract_phrase("phone_number")
+
 
         # 解析してJSON化して返す
         if analyse_func:
