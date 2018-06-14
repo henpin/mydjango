@@ -11,9 +11,12 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets
-from .models import ScraperData, ScraperInfoData, ResultData
+from .models import ScraperData, ScraperInfoData, ResultData, ChatAPIData
 
 import tasks
+
+from exception_utils import WebAPIException
+
 
 # JS template file
 TEMPLATE_JSON_JS_PATH = os.path.dirname(os.path.abspath(__file__)) + '/static/view_result.js'
@@ -71,7 +74,7 @@ def get_view_result_js(req, _uuid):
 
 
 # API
-class ScrapeAPIViewSet(viewsets.ViewSet):
+class ScrapeAPIVS(viewsets.ViewSet):
     """ スクレイピングAPIJビューセット"""
     def retrieve(self, request, pk=None):
         """ Getメソッド処理"""
@@ -84,4 +87,21 @@ class ScrapeAPIViewSet(viewsets.ViewSet):
         # JSONなのでそのまま返す
         return Response(result)
 
+
+class NotificationTestAPIVS(viewsets.ViewSet):
+    """ 通知テストAPI """
+    def retrieve(self, request, pk=None):
+        """ Getメソッド処理"""
+        # データ取得
+        chatapi_data = get_object_or_404(ChatAPIData, uuid=pk).convert2entity() # 通知先 : 具象クラスに落とす
+
+        # 通知
+        try :
+            # 通知
+            tasks.send_notification(chatapi_data,"test message from Scrango",None)
+            return Response("通知に成功しました")
+            
+        except WebAPIException :
+            return Response("通知に失敗しました")
+            
 

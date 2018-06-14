@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 from celery import shared_task
 from .models import ScraperData, ScraperInfoData, ResultData, ActionData
-from .models import ChatAPIData, SlackAPIData, ChatworkAPIData
+from .models import ChatAPIData, SlackAPIData, ChatworkAPIData, LineAPIData, TwitterAPIData
 from django.conf import settings
 from django.utils import timezone
 
@@ -16,6 +16,8 @@ import datetime
 
 from slack_interface import SlackInterface
 from chatwork_interface import ChatworkInterface
+from twitter_interface import TwitterInterface
+from line_interface import LineInterface
 from template_system import TemplateSystem
 from selenium_loader import SeleniumLoader, FormAction
 from image_utils import ImageUtil
@@ -190,7 +192,13 @@ def notificate_it(scraper_data,result_data,filename="",error=False):
 
     # メッセージ作成
     message = create_notification_message(scraper_data.name, result_data)
+    # 送信
+    send_notification(notification,message,filename)
 
+
+@shared_task
+def send_notification(notification,message,filename):
+    """ 通知APIをつかって通知 """
     # slack通知処理
     if isinstance(notification,SlackAPIData):
         # データ抜く
@@ -227,11 +235,49 @@ def notificate_it(scraper_data,result_data,filename="",error=False):
         # 通知
         chatwork.send_message(message)
 
+    # Twitter通知
+    elif isinstance(notification,TwitterAPIData):
+        # データ抜く
+        consumer_key = notification.consumer_key
+        consumer_secret = notification.consumer_secret
+        access_token = notification.access_token
+        access_token_secret = notification.access_token_secret
+
+        # インターフェイス起こす
+        twitter = TwitterInterface()
+        # データ注入
+        twitter.injects(
+            consumer_key = consumer_key,
+            consumer_secret = consumer_secret,
+            access_token = access_token,
+            access_token_secret = access_token_secret
+        )
+        # 通知
+        twitter.auth()
+        twitter.send_tweet(message,filename)
+
+    # Line通知
+    elif isinstance(notification,LineAPIData):
+        # データ抜く
+        access_token = notification.access_token
+
+        # インターフェイス起こす
+        line = LineInterface()
+        # データ注入
+        line.injects(
+            access_token = access_token
+        )
+        # 通知
+        line.send_message(message,filename)
+
+
+
 
 def create_notification_message(scraper_name,result_data):
     """ 抽出済みJSON元データから、通知に耐えうるデータに変換する"""
     # 再帰ジェネレータでｶﾞﾝｶﾞﾝやってyieldする
     return (u"スクレイピング「%s」を実行しました。\n\n" % (scraper_name)) +u"\n".join(item2message(result_data))
+
 
 
 def item2message(item,prefix="",indent=-1):
