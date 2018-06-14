@@ -26,6 +26,7 @@ def initialize_watson(crawler_data):
     log.append("Watson生成を開始しました")
     try :
         # 初期化中フラグ上げる
+        crawler_data.refresh_from_db()
         crawler_data.state = 'crawling'
         crawler_data.save()
 
@@ -44,6 +45,7 @@ def initialize_watson(crawler_data):
 
         # ワークスペースIDないなら保存
         if not ws_id :
+            crawler_data.refresh_from_db()
             crawler_data.ws_id = generated
             crawler_data.save()
 
@@ -54,6 +56,7 @@ def initialize_watson(crawler_data):
         watson.main(url,_file)
 
         # モデル状態更新
+        crawler_data.refresh_from_db()
         crawler_data.state = "active" # 終了フラグ上げる
         crawler_data.save()
 
@@ -79,6 +82,7 @@ def initialize_watson(crawler_data):
             log = "\n".join(log),
             ).save() # 保存
 
+        crawler_data.refresh_from_db()
         crawler_data.state = "error" # エラーフラグ
         crawler_data.save()
 

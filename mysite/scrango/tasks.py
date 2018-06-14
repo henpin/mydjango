@@ -37,12 +37,14 @@ def do_scrape(scraper_data):
     log.append("スクレイピングを開始しました")
     try:
         # 状態変遷
+        scraper_data.refresh_from_db()
         scraper_data.state = "executing" # 状態-> 実行中
         scraper_data.last_execute_time = timezone.now() # 最終実行時間-> 今
         scraper_data.save()
 
         log.append("スクレイピング情報を取得中...")
         # スクレイピングデータ取得
+        scraper_data.refresh_from_db()
         url = scraper_data.url
         screenshot_size = scraper_data.screenshot # スクリーンショット取るか否か
         user_agent = scraper_data.user_agent # ユーザーエージェント
@@ -113,6 +115,7 @@ def do_scrape(scraper_data):
             ).save() # 保存
 
         # 状態変遷
+        scraper_data.refresh_from_db()
         scraper_data.state = "active"
         scraper_data.save()
 
@@ -141,6 +144,7 @@ def do_scrape(scraper_data):
             ).save() # 保存
 
         # 状態変遷
+        scraper_data.refresh_from_db()
         scraper_data.state = "error" # 状態-> エラー
         scraper_data.save()
 
