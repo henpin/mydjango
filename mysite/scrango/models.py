@@ -215,6 +215,15 @@ class WebAPIParameterData(models.Model):
     def __unicode__(self):
         return self.name
 
+class WebAPIHttpHeaderParameterData(models.Model):
+    """ HTTPヘッダデータ """
+    webapi = models.ForeignKey(WebAPIData, on_delete=models.CASCADE) # 親
+    name = models.CharField("name",max_length=512)
+    value = models.CharField("value",max_length=512)
+
+    def __unicode__(self):
+        return self.name
+
 class WebAPIResultData(GeneralResultDataModel):
     """ 結果データ """
     webapi = models.ForeignKey(WebAPIData, on_delete=models.CASCADE) # 親

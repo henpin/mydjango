@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from celery import shared_task
 from .models import ScraperData, ScraperInfoData, ResultData, ActionData
 from .models import ChatAPIData, SlackAPIData, ChatworkAPIData, LineAPIData, TwitterAPIData
-from .models import WebAPIData, WebAPIResultData, WebAPIParameterData
+from .models import WebAPIData, WebAPIResultData, WebAPIParameterData, WebAPIHttpHeaderParameterData
 from django.conf import settings
 from django.utils import timezone
 
@@ -428,20 +428,26 @@ def call_webapi(webapi_data):
         notification = webapi_data.notification
 
         # パラメーター情報からパラメーター構築
-        parameter_data_qs = WebAPIParameterData.objects.filter(webapi=webapi_data)
+        parameter_data_qs = WebAPIParameterData.objects.filter(webapi=webapi_data) # パラメータデータ
+        header_data_qs = WebAPIHttpHeaderParameterData.objects.filter(webapi=webapi_data) # HTTPヘッダ
         param = {} # 送信データ
+        headers = {} # HTTPヘッダ
         
+        # パラメーターつくる
         for parameter_data in parameter_data_qs:
             name = parameter_data.name
             value = parameter_data.value
             param[name] = value # 構築
+        # HTTPヘッダ作る
+        for header_data in header_data_qs:
+            headers[header_data.name] = header_data.value # 構築
             
         # 送信
         if http_method == "POST" :
-            res = requests.post(url, data=param) # POSTする
+            res = requests.post(url, data=param, headers=headers) # POSTする
 
         elif http_method == "GET":
-            res = requests.get(url, data=param) # GETする
+            res = requests.get(url, data=param, headers=headers) # GETする
 
         else :
             raise WebAPIException("DELETEメソッドは未実装です")
