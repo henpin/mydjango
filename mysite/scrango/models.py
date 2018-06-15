@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
-from mysite.models import GeneralModel, GeneralLogModel, GeneralModelWithUUID
+from mysite.models import GeneralModel, GeneralLogModel, GeneralModelWithUUID, GeneralResultDataModel
 import uuid
 
 # User Agents
@@ -69,7 +69,7 @@ class LineAPIData(ChatAPIData):
 
 
 # Create your models here.
-class ScraperData(GeneralModel):
+class ScraperData(GeneralModelWithUUID):
     """ スクレイパーデータ """
     STATE_LIST = (
         ("executing","実行中"),
@@ -122,7 +122,6 @@ class ScraperData(GeneralModel):
     notification_cond = models.CharField("通知条件", max_length=64, choices=NOTIFICATION_COND_LIST, default="always") # 初期化フラグ
     last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
     user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=255, default=UA_FF) # 通知先
-    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     #proxy = models.CharField("プロキシサーバー", max_length=256, blank=True, null=True) # プロキシサーバー
 
     def __unicode__(self):
@@ -176,10 +175,9 @@ class ScraperInfoData(models.Model):
     def __unicode__(self):
         return self.name
 
-class ResultData(GeneralLogModel):
+class ResultData(GeneralResultDataModel):
     """ スクレイピング結果 """
     scraper = models.ForeignKey(ScraperData, on_delete=models.CASCADE) # 生成元クローラー
-    json = models.TextField(blank=True) # 解析結果JSON
     screenshot = models.ImageField(upload_to="images/",null=True,blank=True)
 
     class Meta:
@@ -188,5 +186,37 @@ class ResultData(GeneralLogModel):
     def __unicode__(self):
         return str(self.datetime)
 
+
+class WebAPIData(GeneralModelWithUUID):
+    """ ウェッブAPIデータ """
+    HTTP_METHOD_LIST = (
+        ("GET","GET"),
+        ("POST","POST"),
+        #("DELETE","DELETE"),
+    ) # 取得コンテンツチョイス
+
+    name = models.CharField("名前",max_length=255)
+    url = models.URLField("URL")
+    http_method = models.CharField("HTTPメソッド", max_length=32, choices=HTTP_METHOD_LIST)
+    repetition = models.CharField("定期実行", max_length=64, choices=ScraperData.REPETITION_INTERVAL_LIST, blank=True) # 繰り返し定義
+    notification = models.ForeignKey(ChatAPIData, on_delete=models.SET_NULL, null=True, blank=True) # 通知
+    notification_cond = models.CharField("通知条件", max_length=64, choices=ScraperData.NOTIFICATION_COND_LIST, default="always") # 初期化フラグ
+    last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
+
+    def __unicode__(self):
+        return self.name
+
+class WebAPIParameterData(models.Model):
+    """ ウェッブAPIのパラミータデータ"""
+    webapi = models.ForeignKey(WebAPIData, on_delete=models.CASCADE) # 親
+    name = models.CharField("name",max_length=512)
+    value = models.CharField("value",max_length=512)
+
+    def __unicode__(self):
+        return self.name
+
+class WebAPIResultData(GeneralResultDataModel):
+    """ 結果データ """
+    webapi = models.ForeignKey(WebAPIData, on_delete=models.CASCADE) # 親
 
 
