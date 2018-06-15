@@ -3,16 +3,18 @@ from __future__ import absolute_import
 from celery import shared_task
 from .models import ScraperData, ScraperInfoData, ResultData, ActionData
 from .models import ChatAPIData, SlackAPIData, ChatworkAPIData, LineAPIData, TwitterAPIData
+from .models import WebAPIData, WebAPIResultData, WebAPIParameterData
 from django.conf import settings
 from django.utils import timezone
 
-import StringIO
 from command_node_scraper import CommandNodeScraper, ScraperCommand
+import StringIO
 import urlparse
 import json
 import uuid
 import os
 import datetime
+import itertools
 
 from slack_interface import SlackInterface
 from chatwork_interface import ChatworkInterface
@@ -21,8 +23,9 @@ from line_interface import LineInterface
 from template_system import TemplateSystem
 from selenium_loader import SeleniumLoader, FormAction
 from image_utils import ImageUtil
-
+from exception_utils import WebAPIException
 import re_utils as reu
+import requests
 
 # スクリーンショット値抜き器
 TEMPLATE_SYSTEM = TemplateSystem("($$px,$$px)")
@@ -108,7 +111,7 @@ def do_scrape(scraper_data):
         log.append("スクレイピングが完了しました")
         ResultData(
             scraper = scraper_data,
-            json = jsoned,      # 結果JSON
+            result_data = jsoned,      # 結果JSON
             result = "success",
             screenshot = filename, # スクリーンショットURL
             log = "\n".join(log) # ログデータ保存
@@ -138,7 +141,7 @@ def do_scrape(scraper_data):
         log.append("スクレイピングが完了しました")
         ResultData(
             scraper = scraper_data,
-            json = json.dumps(result_data),
+            result_data = json.dumps(result_data),
             result = "failure",
             log = "\n".join(log) # ログデータ保存
             ).save() # 保存
@@ -171,7 +174,7 @@ def notificate_it(scraper_data,result_data,filename="",error=False):
         results = ResultData.objects.filter(scraper=scraper_data).order_by('-datetime')
         if len(results) >=2:
             last_result = results[1] # 1こ前
-            last_result_dic = json.loads(last_result.json or "") # 辞書に復元
+            last_result_dic = json.loads(last_result.result_data or "") # 辞書に復元
             # 結果比較
             if result_data == last_result_dic :
                 return # 一緒なら通知しない
@@ -201,7 +204,7 @@ def notificate_it(scraper_data,result_data,filename="",error=False):
 
 
 @shared_task
-def send_notification(notification,message,filename):
+def send_notification(notification,message,filename=""):
     """ 通知APIをつかって通知 """
     # slack通知処理
     if isinstance(notification,SlackAPIData):
@@ -326,7 +329,7 @@ def gen_commandNodeTree(scraper_data):
         # 再帰クローラー検索
         r_scraper_name = scraperInfo_data.scraper_name
         if r_scraper_name :
-            r_scraper = scraperData.objects.get(name=r_scraper_name) 
+            r_scraper = ScraperData.objects.get(name=r_scraper_name) 
         else :
             r_scraper = None
 
@@ -411,6 +414,107 @@ def gen_filterer(selector):
 
 
 @shared_task
+def call_webapi(webapi_data):
+    """ WebAPIを呼び出す """
+    try :
+        # データ更新
+        webapi_data.refresh_from_db() 
+        webapi_data.last_execute_time = timezone.now() # 最終実行時間-> 今
+        webapi_data.save()
+
+        # データ抜く
+        url = webapi_data.url
+        http_method = webapi_data.http_method
+        notification = webapi_data.notification
+
+        # パラメーター情報からパラメーター構築
+        parameter_data_qs = WebAPIParameterData.objects.filter(webapi=webapi_data)
+        param = {} # 送信データ
+        
+        for parameter_data in parameter_data_qs:
+            name = parameter_data.name
+            value = parameter_data.value
+            param[name] = value # 構築
+            
+        # 送信
+        if http_method == "POST" :
+            res = requests.post(url, data=param) # POSTする
+
+        elif http_method == "GET":
+            res = requests.get(url, data=param) # GETする
+
+        else :
+            raise WebAPIException("DELETEメソッドは未実装です")
+
+        # 結果抜いて保存
+        data = res.text
+        result = WebAPIResultData(
+            webapi = webapi_data, 
+            result_data = data,
+            result = "success"
+        )
+        result.save()
+
+        notificate_it_forwebAPI(webapi_data,result)
+        
+    except Exception as e:
+        # 結果JSON作成
+        data = {
+            "status" : "error",
+            "message" : reu.decode(str(e)) # エラーメッセージ
+        }
+
+        # 結果抜いて保存
+        result = WebAPIResultData(
+            webapi = webapi_data, 
+            result_data = json.dumps(data),
+            result="failure"
+        )
+        result.save()
+
+        notificate_it_forwebAPI(webapi_data,result,True)
+
+    return result
+
+
+def notificate_it_forwebAPI(webapi_data,result_data,error=False):
+    """ 通知するその２"""
+    # 通知周りの情報を抜く
+    notification = webapi_data.notification.convert2entity() if webapi_data.notification else None # 通知先 : 具象クラスに落とす
+    notification_cond = webapi_data.notification_cond # 通知条件
+
+    # 通知できるか判定
+    if not notification :
+        return  # さよなら
+   
+    # 通知条件判定
+    if error :
+        pass
+    elif notification_cond == "always" :
+        pass
+    elif notification_cond == "changed":
+        # 最終取得結果抜く
+        results = WebAPIResultData.objects.filter(webapi=webapi_data).order_by('-datetime')
+        if len(results) >=2:
+            last_result = results[1] # 1こ前
+            last_result_dic = json.loads(last_result.result_data or "") # 辞書に復元
+            # 結果比較
+            if result_data == last_result_dic :
+                return # 一緒なら通知しない
+
+    # メッセージ作成
+    jsoned = json.dumps( 
+        json.loads(result_data.result_data), # 1回読み込み
+        ensure_ascii=False,
+        indent=2 # indentつけてdump
+        )
+    message = (u"WebAPI「%s」を実行しました。\n\n" % (webapi_data.name)) +u"\n" +jsoned
+
+    # 送信
+    send_notification(notification,message)
+
+
+@shared_task
 def apply_shcedule():
     """ スケジューリング処理 """
     #now = datetime.datetime.now()
@@ -428,5 +532,17 @@ def apply_shcedule():
                 do_scrape.delay(scraper_data)
                 print "do delay"
 
+    # WEBAPI呼び出しルーチン
+    for webapi_data in WebAPIData.objects.all():
+        if webapi_data.repetition :
+            # 最終実行時間
+            last_execute_time = webapi_data.last_execute_time # エラるのでTZ無視
+            repetition = int(webapi_data.repetition) # 繰り返し間隔sec
+
+            # 計算 : 最終実行時間が今からrepetition秒前の時間より前か
+            if ( not last_execute_time ) or ( now -last_execute_time > datetime.timedelta(seconds=repetition) ):
+                # クローリングする
+                call_webapi.delay(webapi_data)
+                print "do delay"
 
 

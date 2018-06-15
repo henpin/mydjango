@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 # Models
 from .models import ScraperData, ScraperInfoData, ResultData, ActionData
 from .models import SlackAPIData, ChatworkAPIData, TwitterAPIData, LineAPIData
+from .models import WebAPIData, WebAPIResultData, WebAPIParameterData
 # modules
 from .apps import gen_url
 # extenstions
@@ -100,9 +101,45 @@ class LineAPIDataAdmin(ChatAPIDataAdmin):
     pass
 
 
+class WebAPIParameterDataInline(admin.TabularInline):
+    """ ウェッブAPIパラミータデータ"""
+    model = WebAPIParameterData
+    extra = 3
+
+class WebAPIResultDataInline(admin.TabularInline):
+    """ ウェッブAPI結果データ"""
+    model = WebAPIResultData
+    extra = 0
+
+class WebAPIDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
+    """ ウェッブAPIデータ"""
+    # 並べる
+    inlines = [
+        WebAPIParameterDataInline,
+        WebAPIResultDataInline
+        ]
+    list_display = ("name","repetition","notification","last_execute_time")
+
+    def get_row_actions(self, item):
+        """ プラグイン用行アクション """
+        url_for_call = gen_url("api/call_webapi",str(item.uuid))
+        # 行埋め込みアクション
+        row_actions = [
+            {
+                'label': 'APIを呼び出す',
+                'url': url_for_call
+            },
+        ]
+
+        return row_actions
+
+
+
 # Register your models here.
 admin.site.register(ScraperData, ScraperDataAdmin)
 admin.site.register(SlackAPIData, SlackAPIDataAdmin)
 admin.site.register(ChatworkAPIData, ChatworkAPIDataAdmin)
 admin.site.register(TwitterAPIData, TwitterAPIDataAdmin)
 admin.site.register(LineAPIData, LineAPIDataAdmin)
+admin.site.register(WebAPIData, WebAPIDataAdmin)
+

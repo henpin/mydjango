@@ -36,3 +36,9 @@ class GeneralLogModel(models.Model):
     class Meta:
         abstract = True
 
+class GeneralResultDataModel(GeneralLogModel):
+    """ 処理結果モデル """
+    result_data = models.TextField() # 処理結果
+
+    class Meta:
+        abstract = True

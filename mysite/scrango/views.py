@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import ScraperData, ScraperInfoData, ResultData, ChatAPIData
+from .models import WebAPIData, WebAPIResultData, WebAPIParameterData
 
 import tasks
 
@@ -60,7 +61,7 @@ def get_view_result_js(req, _uuid):
     # データ取得
     scraper_data = get_object_or_404(ScraperData, uuid=_uuid)
     last_result = ResultData.objects.filter(scraper=scraper_data).order_by("-datetime")[0] # リザルトとる
-    json_data = last_result.json.replace(u"\\",u"\\\\").replace(u"'",u"\\'")
+    json_data = last_result.result_data.replace(u"\\",u"\\\\").replace(u"'",u"\\'")
 
     # JS生成
     with open(TEMPLATE_JSON_JS_PATH) as f :
@@ -104,4 +105,17 @@ class NotificationTestAPIVS(viewsets.ViewSet):
         except WebAPIException :
             return Response("通知に失敗しました")
             
+
+class CallWebAPIVS(viewsets.ViewSet):
+    """ webAPI呼び出しVS """
+    def retrieve(self, request, pk=None):
+        """ Getメソッド処理"""
+        # データ取得
+        webapi_data = get_object_or_404(WebAPIData, uuid=pk) # apiデータ抜く
+
+        # 直接関数として呼ぶ
+        result_data = tasks.call_webapi(webapi_data)
+
+        # 呼び出し結果を返す
+        return Response(result_data.result_data)
 
