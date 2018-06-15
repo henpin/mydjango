@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 # Models
 from .models import ScraperData, ScraperInfoData, ResultData, ActionData
 from .models import SlackAPIData, ChatworkAPIData, TwitterAPIData, LineAPIData
-from .models import WebAPIData, WebAPIResultData, WebAPIParameterData
+from .models import WebAPIData, WebAPIResultData, WebAPIParameterData, WebAPIHttpHeaderParameterData
 # modules
 from .apps import gen_url
 # extenstions
@@ -106,6 +106,11 @@ class WebAPIParameterDataInline(admin.TabularInline):
     model = WebAPIParameterData
     extra = 3
 
+class WebAPIHttpHeaderParameterDataInline(admin.TabularInline):
+    """ ウェッブAPIHttpヘッダデータ"""
+    model = WebAPIHttpHeaderParameterData
+    extra = 3
+
 class WebAPIResultDataInline(admin.TabularInline):
     """ ウェッブAPI結果データ"""
     model = WebAPIResultData
@@ -116,7 +121,8 @@ class WebAPIDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
     # 並べる
     inlines = [
         WebAPIParameterDataInline,
-        WebAPIResultDataInline
+        WebAPIResultDataInline,
+        WebAPIHttpHeaderParameterDataInline
         ]
     list_display = ("name","repetition","notification","last_execute_time")
 
