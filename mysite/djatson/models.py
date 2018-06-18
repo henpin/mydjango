@@ -17,6 +17,7 @@ class CrawlerData(GeneralModel):
     
     url = models.URLField("URL")
     name = models.CharField("名前",max_length=255)
+    keyword = models.CharField("キーワード",max_length=255)
     #selector = models.CharField("対象CSSセレクタ(オプション)",blank=True,max_length=128, editable=False) # 解析対象 : 廃止予定
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="pending",editable=False) # 初期化フラグ
     ws_id = models.CharField("ワークスペースID",max_length=512,default="",editable=False) # WatsonワークスペースID
@@ -39,5 +40,6 @@ class HtmlData(models.Model):
     """ HTMLデータ"""
     crawlinglog = models.ForeignKey(CrawlingLogData, on_delete=models.CASCADE) # クロールログに対して保存
     url = models.URLField("URL")
+    title = models.CharField("タイトル",max_length=255)
     html = models.TextField(blank=True, null=True) # HTMLデータ
 

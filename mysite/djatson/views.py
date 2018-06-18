@@ -242,3 +242,35 @@ class CrossSearchAPIVS(viewsets.ViewSet):
             return Response("ERROR")
 
 
+class KeywordCrawlActionVS(viewsets.ViewSet):
+    """ キーワードクローリングアクションビューセット"""
+    def retrieve(self, request, pk=None):
+        """ Getメソッド処理"""
+        # データ取得
+        crawler_data = get_object_or_404(CrawlerData, name=pk)
+
+        # 初期化中でなければ許可
+        if crawler_data.state != "crawling":
+            tasks.do_keywordCrawl.delay(crawler_data) # 非同期クローリング開始
+
+        # adminにリダイレクト
+        return HttpResponseRedirect('/admin/djatson/crawlerdata/')
+
+
+class Initialize_fromCrawledDataActionVS(viewsets.ViewSet):
+    """ クロールデータベースワトソン生成アクションビューセット"""
+    def retrieve(self, request, pk=None):
+        """ Getメソッド処理"""
+        # データ取得
+        crawler_data = get_object_or_404(CrawlerData, name=pk)
+
+        # 初期化中でなければ許可
+        if crawler_data.state != "crawling":
+            tasks.initialize_watson_fromCrawledData.delay(crawler_data) # 非同期クローリング開始
+
+        # adminにリダイレクト
+        return HttpResponseRedirect('/admin/djatson/crawlerdata/')
+
+
+
+

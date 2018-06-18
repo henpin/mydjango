@@ -6,6 +6,8 @@ from . import views
 # restframework Router
 router = DefaultRouter()
 router.register(r'crawl',views.CrawlActionVS,base_name="crawl") # クローリングする
+router.register(r'keyword_crawl',views.KeywordCrawlActionVS,base_name="keyword_crawl") # キーワードクローリングする
+router.register(r'initialize_fromCrawledData',views.Initialize_fromCrawledDataActionVS,base_name="initialize_fromCrawledData") # キーワードクローリングする
 
 api_router = DefaultRouter()
 api_router.register(r'cross_search',views.CrossSearchAPIVS,base_name="cross_search") # クローリングする
