@@ -56,6 +56,8 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
         url_for_initialize = gen_url("initialize",item.name)
         url_for_crawl = gen_url("crawl",item.name)
         url_for_json2 = gen_url("view_json2",item.name)
+        url_for_keywordCrawl = gen_url("keyword_crawl",item.name)
+        url_for_initialize_fromCrawledData = gen_url("initialize_fromCrawledData",item.name)
         row_actions = [
             {
                 'label': '解析結果を表示',
@@ -76,6 +78,14 @@ class CrawlerDataAdmin(AdminRowActionsMixin, admin.ModelAdmin):
             {
                 'label': 'クロール結果を見る',
                 'url' : url_for_json2
+            },
+            {
+                'label': 'キーワードでクロールする',
+                'url' : url_for_keywordCrawl
+            },
+            {
+                'label': 'クロールデータからWatsonの生成',
+                'url' : url_for_initialize_fromCrawledData
             },
         ]
 
