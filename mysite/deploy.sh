@@ -26,5 +26,4 @@ sudo apache2ctl restart
 echo "starting celery..."
 ./crun.sh &
 echo "starting celeryBeats..."
-./crun.sh &
 ./cbeat.sh &
