@@ -15,6 +15,7 @@ import uuid
 import os
 import datetime
 import itertools
+import time, random
 
 from slack_interface import SlackInterface
 from chatwork_interface import ChatworkInterface
@@ -34,7 +35,7 @@ IMAGE_UTILS = ImageUtil()
 
 
 @shared_task
-def do_scrape(scraper_data):
+def do_scrape(scraper_data,_url=None):
     """ スクレイピングをする """
     log = [] # ログリスト
     log.append("スクレイピングを開始しました")
@@ -48,9 +49,10 @@ def do_scrape(scraper_data):
         log.append("スクレイピング情報を取得中...")
         # スクレイピングデータ取得
         scraper_data.refresh_from_db()
-        url = scraper_data.url
+        url = _url or scraper_data.url # API用URL注入フック
         screenshot_size = scraper_data.screenshot # スクリーンショット取るか否か
         user_agent = scraper_data.user_agent # ユーザーエージェント
+        selenium_mode = scraper_data.selenium_mode
 
         log.append("スクレイパーを初期化中...")
         # クローラーからアクション抽出
@@ -62,31 +64,38 @@ def do_scrape(scraper_data):
             ) for a in ActionData.objects.filter(scraper=scraper_data) if a.valid # only valid
         ]
 
-        # JSパーシング済みHTML取得
-        with SeleniumLoader(user_agent) as selen :
-            log.append("Webページ取得中...")
-            # url読む
-            selen.load_url(url)
-            log.append("フォーム操作実行中...")
-            # アクション処理
-            selen.apply_formActions(*action_list)
-            # HTML抜く
-            html = selen.get_source()
+        # Seleniumモード : JSパーシング済みHTML取得
+        log.append("Webページ取得中...")
+        filename = None # ダミー
+        html = "" # ダミー
 
-            # スクリーンショットとっちゃう
-            if screenshot_size :
-                log.append("スクリーンショット取得中...")
-                # ファイル名作る
-                _uuid = str(uuid.uuid4())
-                media_path = settings.MEDIA_ROOT
-                filename = os.path.join(media_path, _uuid +"_ss.png")
-                # スクリーンショットサイズの解析
-                x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
-                # とる
-                selen.set_size(x,y).save_screenshot(filename)
+        if selenium_mode :
+            with SeleniumLoader(user_agent) as selen :
+                # url読む
+                selen.load_url(url)
+                log.append("フォーム操作実行中...")
+                # アクション処理
+                selen.apply_formActions(*action_list)
+                # HTML抜く
+                html = selen.get_source()
 
-            else :
-                filename = None # ダミー
+                # スクリーンショットとっちゃう
+                if screenshot_size :
+                    log.append("スクリーンショット取得中...")
+                    # ファイル名作る
+                    _uuid = str(uuid.uuid4())
+                    media_path = settings.MEDIA_ROOT
+                    filename = os.path.join(media_path, _uuid +"_ss.png")
+                    # スクリーンショットサイズの解析
+                    x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
+                    # とる
+                    selen.set_size(x,y).save_screenshot(filename)
+        else :
+            time.sleep(1+random.random()*2) # ちょっと待つ : 再帰呼び出し対策
+            # Seleniumモードで無いのならrequestsでシンプルにとる
+            res = requests.get(url) # GETする
+            res.encoding = res.apparent_encoding  # なんかエンコーディング処理
+            html = res.text # body部取得
 
         # コマンドノードツリー生成
         log.append("セレクタ情報を構築中...")

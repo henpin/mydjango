@@ -113,6 +113,7 @@ class ScraperData(GeneralModelWithUUID):
         ("ss_changed2","スクリーンショット変化時(感度低)"),
     ) # 通知条件リスト
 
+
     name = models.CharField("名前",max_length=255)
     url = models.URLField("URL", blank=True, null=True)
     state = models.CharField("状態", max_length=64, choices=STATE_LIST, default="active",editable=False) # 初期化フラグ
@@ -122,6 +123,7 @@ class ScraperData(GeneralModelWithUUID):
     notification_cond = models.CharField("通知条件", max_length=64, choices=NOTIFICATION_COND_LIST, default="always") # 初期化フラグ
     last_execute_time = models.DateTimeField("最近の実行日時", null=True, blank=True, editable=False) # 実行日時
     user_agent = models.CharField("ユーザーエージェント", choices=USERAGENT_LIST ,max_length=255, default=UA_FF) # 通知先
+    selenium_mode = models.BooleanField("Javascript実行モード", default=False) # Seleniumモード
     #proxy = models.CharField("プロキシサーバー", max_length=256, blank=True, null=True) # プロキシサーバー
 
     def __unicode__(self):

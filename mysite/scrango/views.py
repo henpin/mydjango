@@ -88,6 +88,21 @@ class ScrapeAPIVS(viewsets.ViewSet):
         # JSONなのでそのまま返す
         return Response(result)
 
+    @action(methods=['post'], detail=True)
+    def inject(self,request,pk=None):
+        """ POST処理 """
+        # POSTからデータ抜く
+        url = request.POST.get("url")
+
+        # データ取得
+        scraper_data = get_object_or_404(ScraperData, uuid=pk) # URL指定
+
+        # スクレイピング開始
+        result = tasks.do_scrape(scraper_data, _url=url)
+
+        # JSONなのでそのまま返す
+        return Response(result)
+
 
 class NotificationTestAPIVS(viewsets.ViewSet):
     """ 通知テストAPI """
