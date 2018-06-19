@@ -146,7 +146,7 @@ def initialize_watson_fromCrawledData(crawler_data):
         log.append("Watson生成が正常に完了しました...")
         DjatsonLogData(
             crawler = crawler_data,
-            json = spider.get_additional_data(), # 結果JSON
+            json = spynder.get_additional_data("cnv_data"), # 結果JSON
             result = "success",
             log = "\n".join(log),
             ).save() # 保存
