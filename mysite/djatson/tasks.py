@@ -137,15 +137,9 @@ def initialize_watson_fromCrawledData(crawler_data):
         spynder = Spynder(KeywordSpider) # キーワードスパイダベースで起こす
         spynder.do_parse(*targets) # パースする : JSON構築
 
-        # データ処理
-        log.append("Watsonデータの最適化中...")
-        spynder.spider.generalData2cnvData() # ジェネラルデータをcnvデータに変換
-        spynder.spider.filter_ds() # DSのﾌｨﾙﾀﾘﾝｸﾞ
-        spynder.spider.optimize_cnv_data() # カンバゼーションデータの最適化
-
         # JSONからWatson生成
         log.append("Watsonの生成中...")
-        watson.main_fromJSON(spynder.get_additional_data("cnv_data")) # 取得済みJSONを渡す
+        watson.main_fromSpider(spynder) # スパイダを直接渡す
 
         # 取得済みJSONの保存
         log.append("ログデータ収集中...")

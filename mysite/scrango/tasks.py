@@ -381,10 +381,10 @@ def gen_command(target, scraper=None, url_prefix=""):
                         # ノードツリー生成
                         root = gen_commandNodeTree(scraper)
                         # スクレイパ生成
-                        scraper = CommandNodeScraper()
-                        scraper.parse_fromURL(href_abs)
+                        _scraper = CommandNodeScraper()
+                        _scraper.parse_fromURL(href_abs)
                         # スクレイピング
-                        result = scraper.call(root)
+                        result = _scraper.call(root)
                         print "HREF Done"
                         return result
 

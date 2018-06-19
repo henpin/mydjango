@@ -113,7 +113,7 @@ class BaseJsonView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         # コンテキスト取得
-        context = super(JsonView, self).get_context_data(**kwargs)
+        context = super(BaseJsonView, self).get_context_data(**kwargs)
         # データ取得
         name = kwargs["name"]
         context['object'] = get_object_or_404(CrawlerData,name=name)
