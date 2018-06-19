@@ -1,0 +1,25 @@
+{% block title %}ソーシャルログイン{% endblock title %}
+
+{% block content %}
+<html>
+    <head>
+        {% block extrahead %}{% endblock %}
+    </head>
+    <body>
+        <div>
+          <h1>ソーシャルログイン</h1>
+          <div>
+            {% if user and not user.is_anonymous %}
+                <p>貴方はすでにログイン済みです</p>
+            {% else %}
+            <li>
+              <a href="{% url 'social:begin' 'twitter' %}?next={{ request.path }}">Login with Twitter</a>
+              <a href="{% url 'social:begin' 'facebook' %}?next={{ request.path }}">Login with Facebook</a>
+              <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login with Google+</a>
+            </li>
+            {% endif %}
+          </div>
+        </div>
+    </body>
+</html>
+{% endblock content %}
