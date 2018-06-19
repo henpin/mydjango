@@ -139,7 +139,7 @@ def initialize_watson_fromCrawledData(crawler_data):
 
         # JSONからWatson生成
         log.append("Watsonの生成中...")
-        watson.main_fromSpider(spynder) # スパイダを直接渡す
+        watson.main_fromSpider(spynder.spider) # スパイダを直接渡す
 
         # 取得済みJSONの保存
         log.append("ログデータ収集中...")

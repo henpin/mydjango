@@ -27,3 +27,5 @@ echo "starting celery..."
 ./crun.sh &
 echo "starting celeryBeats..."
 ./cbeat.sh &
+# monitor celery
+celery flower &
