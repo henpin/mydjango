@@ -34,7 +34,8 @@ function App(){
 
     /* 背景初期化 */
     this.init_bg = function(){
-        canvas.setBackgroundImage('/static/img/demo2-2.png', canvas.renderAll.bind(canvas));
+        var img_path = $("#my-image").attr("src"); // ファイルパス
+        canvas.setBackgroundImage(img_path, canvas.renderAll.bind(canvas));
     }
 
     /* キャンバスイベントの初期化*/
@@ -71,7 +72,7 @@ function App(){
             input_num += 1;
             var text = new fabric.IText('入力'+input_num, {
                 width: x -startX, height: y -startY,
-                fontSize:16
+                fontSize:16, textAlign: "center"
             });
 
             // group化して追加
@@ -85,9 +86,9 @@ function App(){
 
             // フォームエリアに追加
             $("#form-area").append(
-                '<div class="form-group">'
-                    +'<label class="control-label">入力欄'+input_num+'</label>'
-                    +'<div class="form-inline">'
+                '<div class="form-group col-sm-12 row">'
+                    +'<div class="col-sm-12"><label class="control-label">入力欄'+input_num+'</label></div>'
+                    +'<div class="col-sm-12">'
                     +'<input type="text" class="form-control form-input col-sm-8" placeholder="入力項目名" data-target="'+input_num+'">'
                     +'<select class="form-control col-sm-4">'
                         +'<option value="サンプル1">フリー入力</option> <option value="サンプル2">数字</option> <option value="サンプル3">郵便番号</option>'
@@ -169,7 +170,7 @@ function App(){
                 });
             // textつくる
             var text = new fabric.IText(data.text, {
-                fontSize:16
+                fontSize:16, textAlign: "center",
             });
             // 共通設定あてる
             rect.set(settings); text.set(settings);
@@ -226,6 +227,7 @@ function App(){
             }
 
             // コピペ処理
+            /*
             if (e.ctrlKey){
                 if (e.keyCode == 67){
                     self.copy_elem(); // コピー
@@ -233,6 +235,7 @@ function App(){
                     self.paste_elem(); // ペースト
                 }
             }
+            */
         });
     }
 
@@ -248,13 +251,18 @@ function App(){
         // ワンクリックで入力モード
         var _rect = rect; // for closure
         var _text = text; // for closure
-        canvas.on("mouse:up",function(opt){
+        canvas.on("mouse:down",function(opt){
             if ( opt.target == _text || opt.target == _rect ){
                 _text.enterEditing();
                 _text.selectAll()
                 //text.dirty = false;
                 //canvas.renderAll()
             }
+        })
+
+        canvas.on("text:editing:exited", function(){
+            _text.dirty = false;
+            canvas.renderAll();
         })
 
         canvas.add(rect);
@@ -303,14 +311,16 @@ function App(){
     }
 
     /* Ajax関数 */
-    var URL_FOR_FORM = "/pdf_form/form/";
+    var URL_FOR_FORM = "/pdf_form/form/create/";
     var URL_FOR_PDF = "/pdf_form/output/";
     this.init_ajaxEvents = function(){
+        var uuid = $("#uuid").val(); // UUID抜く
         // フォーム生成ボタン
         $("#gen_form").click(function(){
             // ふぉーむつくる
             var $form = $('<form/>', {'action': URL_FOR_FORM, 'method': 'post', "target" : "_blank"});
             $form.append($('<input/>', {'type': 'hidden', 'name': "data", 'value': self.gen_dataJSON()}));
+            $form.append($('<input/>', {'type': 'hidden', 'name': "uuid", 'value': uuid}));
             $form.appendTo(document.body);
             $form.submit(); // サブミット
         })
@@ -319,6 +329,7 @@ function App(){
             // ふぉーむつくる
             var $form = $('<form/>', {'action': URL_FOR_PDF, 'method': 'post', "target" : "_blank"});
             $form.append($('<input/>', {'type': 'hidden', 'name': "data", 'value': self.gen_dataJSON()}));
+            $form.append($('<input/>', {'type': 'hidden', 'name': "uuid", 'value': uuid}));
             $form.appendTo(document.body);
             $form.submit(); // サブミット
         })
