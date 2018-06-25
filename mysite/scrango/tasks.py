@@ -131,7 +131,8 @@ def do_scrape(scraper_data,_url=None):
         scraper_data.state = "active"
         scraper_data.save()
 
-        return jsoned
+        #return jsoned
+        return scraper.get_result()
 
     except Exception as e:
         import traceback; traceback.print_exc()
@@ -160,7 +161,8 @@ def do_scrape(scraper_data,_url=None):
         scraper_data.state = "error" # 状態-> エラー
         scraper_data.save()
 
-        return json.dumps(result_data)
+        #return json.dumps(result_datae)
+        return result_data
 
 
 def notificate_it(scraper_data,result_data,filename="",error=False):
