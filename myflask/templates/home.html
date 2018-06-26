@@ -30,11 +30,11 @@
             <div>
                 <ul class="works-grid works-grid-gut works-grid-4 works-hover-d" id="works-grid">
                   {% for data in form_data %}
-                      <li class="work-item illustration webdesign"><a href="{{ url_for('load_form',_uuid=data.uuid) }}">
+                      <li class="work-item illustration webdesign"><a href="{{ url_for('pdf_form_detail',_uuid=data.uuid) }}">
                           <div class="work-image"><img src="{{ data.png_file }}" alt="Portfolio Item"></div>
                           <div class="work-caption font-alt">
-                            <h3 class="work-title">この帳票を入力</h3>
-                            <div class="work-descr">帳票名</div>
+                            <h3 class="work-title">{{ data.form_name }}</h3>
+                            <div class="work-descr">この帳票を入力</div>
                           </div></a></li>
                   {% endfor %}
                 </ul>

@@ -70,10 +70,12 @@ function App(){
 
             // text
             input_num += 1;
-            var text = new fabric.IText('入力'+input_num, {
+            var tmp_name = '入力'+input_num; // 一時テキスト
+            var text = new fabric.IText(tmp_name, {
                 width: x -startX, height: y -startY,
                 fontSize:16, textAlign: "center"
             });
+            text.metaName = tmp_name; // 一時名
 
             // group化して追加
             var group = new fabric.Group([rect,text],{
@@ -88,8 +90,8 @@ function App(){
             $("#form-area").append(
                 '<div class="form-group col-sm-12 row">'
                     +'<div class="col-sm-12"><label class="control-label">入力欄'+input_num+'</label></div>'
-                    +'<div class="col-sm-12">'
-                    +'<input type="text" class="form-control form-input col-sm-8" placeholder="入力項目名" data-target="'+input_num+'">'
+                    +'<div class="col-sm-12 form-inline">'
+                    +'<input type="text" class="form-control form-input col-sm-8" placeholder="入力項目名" data-target="'+input_num+'" style="width:300px;">'
                     +'<select class="form-control col-sm-4">'
                         +'<option value="サンプル1">フリー入力</option> <option value="サンプル2">数字</option> <option value="サンプル3">郵便番号</option>'
                         +'<option value="必須">必須</option>'
@@ -101,6 +103,8 @@ function App(){
             $(".form-input").change(function(){
                 // 値を変える 
                 elem_holder[$(this).attr("data-target")].item(1).set({ text : $(this).val() });
+                // メタ名も一緒につける
+                elem_holder[$(this).attr("data-target")].item(1).metaName = $(this).val();
                 canvas.renderAll(); // レンダリング
             })
         });
@@ -108,39 +112,47 @@ function App(){
 
     /* フォームデータJSONを生成 */
     this.gen_dataJSON = function(){
+        // JSONデータ
+        var data = {};
+
         // Elemを簡易化
-        if (Object.keys(elem_holder).length){
-            var dataList = Object.entries(elem_holder).map( item => {
+        if (Object.keys(elem_holder).length){ // フォームジェネレーション時
+            Object.entries(elem_holder).forEach( (item,i) => {
                 var elem = item[1];
                 if (elem._objects){
                     var rect = elem._objects[0]
                     var text = elem._objects[1]
-                    return {
+                    var metaName = text.metaName; // メタ名
+                    // データに追加
+                    data[metaName] = {
                         x : elem.left ,
                         y : elem.top,
                         width : rect.width,
                         height : rect.height,
                         text : text.text,
-                        font : text.fontSize
+                        font : text.fontSize,
+                        order : i, // 順序
                     };
                 }
             })
-        } else if (elem_list.length){
+        } else if (elem_list.length){ // フォーム入力時
             // データリストつくる
-            var dataList = elem_list.map( elem => {
-                return {
+            elem_list.forEach( (elem,i) => {
+                var metaName = elem.metaName; // メタ名
+                // データ追加
+                data[metaName] = {
                     x : elem.left ,
                     y : elem.top,
                     width : elem.width,
                     height : elem.height,
                     text : elem.text,
-                    font : elem.fontSize
+                    font : elem.fontSize,
                 };
             })
         }
 
         // JSON化
-        return JSON.stringify(dataList);
+        return JSON.stringify(data);
     }
 
     /* jsonデータからふぉーむつくる*/
@@ -149,9 +161,12 @@ function App(){
         mode = "form"; // フォーム受付モード
 
         // jsonからオブジェクトデータ構築
-        var data_list = JSON.parse(_json);
-        // くるくるしてBoxつくる
-        data_list.forEach( data => {
+        var json_data = JSON.parse(_json);
+        // メタ名でくるくるしてBoxつくる
+        Object.keys(json_data).forEach( metaName => {
+            // データ
+            var data = json_data[metaName];
+
             // 基礎データ抽出
             var settings = {
                 left : data.x,
@@ -172,6 +187,7 @@ function App(){
             var text = new fabric.IText(data.text, {
                 fontSize:16, textAlign: "center",
             });
+            text.metaName = metaName; // メタ名ぶっこむ
             // 共通設定あてる
             rect.set(settings); text.set(settings);
 
@@ -311,25 +327,41 @@ function App(){
     }
 
     /* Ajax関数 */
-    var URL_FOR_FORM = "/pdf_form/form/create/";
+    var URL_FOR_FORM = "/pdf_form/form/save/";
     var URL_FOR_PDF = "/pdf_form/output/";
+    var URL_FOR_COMMIT = "/pdf_form/commit/"
     this.init_ajaxEvents = function(){
         var uuid = $("#uuid").val(); // UUID抜く
         // フォーム生成ボタン
         $("#gen_form").click(function(){
+            // 名前抜く
+            var form_name = $("#form-name").val();
             // ふぉーむつくる
-            var $form = $('<form/>', {'action': URL_FOR_FORM, 'method': 'post', "target" : "_blank"});
+            var $form = $('<form/>', {'action': URL_FOR_FORM, 'method': 'post'});
             $form.append($('<input/>', {'type': 'hidden', 'name': "data", 'value': self.gen_dataJSON()}));
             $form.append($('<input/>', {'type': 'hidden', 'name': "uuid", 'value': uuid}));
+            $form.append($('<input/>', {'type': 'hidden', 'name': "form_name", 'value': form_name}));
             $form.appendTo(document.body);
             $form.submit(); // サブミット
-        })
+        });
         // PDF生成ボタン
         $("#gen_pdf").click(function(){
             // ふぉーむつくる
             var $form = $('<form/>', {'action': URL_FOR_PDF, 'method': 'post', "target" : "_blank"});
             $form.append($('<input/>', {'type': 'hidden', 'name': "data", 'value': self.gen_dataJSON()}));
             $form.append($('<input/>', {'type': 'hidden', 'name': "uuid", 'value': uuid}));
+            $form.appendTo(document.body);
+            $form.submit(); // サブミット
+        });
+        // 入力終了ボタン
+        $("#commit").click(function(){
+            // 名前抜く
+            var form_name = $("#form-name").val();
+            // ふぉーむつくる
+            var $form = $('<form/>', {'action': URL_FOR_COMMIT, 'method': 'post'});
+            $form.append($('<input/>', {'type': 'hidden', 'name': "data", 'value': self.gen_dataJSON()}));
+            $form.append($('<input/>', {'type': 'hidden', 'name': "uuid", 'value': uuid}));
+            $form.append($('<input/>', {'type': 'hidden', 'name': "form_name", 'value': form_name}));
             $form.appendTo(document.body);
             $form.submit(); // サブミット
         })

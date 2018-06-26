@@ -46,6 +46,7 @@
     <!-- bootstrap jquery -->
     <script src="/static/assets/lib/jquery/dist/jquery.js"></script>
     <script src="/static/assets/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Additional Header Block -->
     {% block header %}
     {% endblock %}
 </head>
@@ -65,12 +66,22 @@
           </div>
         </div>
     </nav>
-    <div class="">
+    <div><!-- Flash Block -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-info" role="alert"> {{ message }} </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class=""><!-- main block -->
         {% block content %}
         {% endblock %}
     </div>
-
-    {% block js %}
+    
+    <!-- additional js block -->
+    {% block js %} 
     {% endblock %}
 </body>
 </html>

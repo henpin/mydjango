@@ -11,20 +11,32 @@
             <div class="col-sm-8 box box-default">
                 <div class="box-body">
                     <canvas id="c"></canvas>
-                    <img src="{{ ns.png_file }}" id="my-image" style="display:none;">
+                    <img src="{{ png_file }}" id="my-image" style="display:none;">
                 </div>
             </div>
             <div class="col-sm-4" style="background-color:#e8e8e8;height:100%">
-                <div class="">
-                    <h3> オプション </h3>
-                    <!--<div style="margin-top:100px">-->
-                    <form id="form-area">
-                    </form>
+                <div class="col-sm-12">
+                    {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
+                        <h3> オプション</h3>
+                        <div class="form-group">
+                            <label class="control-label">フォーム名</label> 
+                            <input class="form-control" type="text" id="form-name"/>
+                        </div>
+                        <form id="form-area">
+                        </form>
+                    {% else %} <!-- フォーム入力時 -->
+                        <h3>{{ form_name }}</h3>
+                        <input type="hidden" id="form-name" value="{{ form_name }}">
+                    {% endif %}
                     <div class="row col-sm-12" style="">
                         <!--<button class="btn btn-success col-sm-12" id="load_format_fromDB">フォームデータの読み込み</button>-->
                         <!--<button class="btn btn-success col-sm-12" id="save_format_2DB">フォームデータの保存</button>-->
-                        <button class="btn btn-success col-sm-12" id="gen_form">フォーム作成</button>
-                        <button class="btn btn-success col-sm-12" id="gen_pdf">PDF化</button>
+                        {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
+                            <button class="btn btn-success col-sm-12" id="gen_form">フォーム作成</button>
+                        {% else %} <!-- フォーム入力時 -->
+                            <button class="btn btn-success col-sm-12" id="gen_pdf">PDF出力</button>
+                            <button class="btn btn-success col-sm-12" id="commit">入力完了</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -58,7 +70,7 @@
         </div>
     </section>
     -->
-    <input type="hidden" id="uuid" value="{{ ns.uuid }}">
+    <input type="hidden" id="uuid" value="{{ uuid }}">
     <div id="file_dl"></div>
 </div>
 {% endblock %}
