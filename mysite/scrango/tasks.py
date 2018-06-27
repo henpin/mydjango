@@ -35,7 +35,7 @@ IMAGE_UTILS = ImageUtil()
 
 
 @shared_task
-def do_scrape(scraper_data,_url=None):
+def do_scrape(scraper_data,_url=None,_html=None):
     """ スクレイピングをする """
     log = [] # ログリスト
     log.append("スクレイピングを開始しました")
@@ -69,33 +69,39 @@ def do_scrape(scraper_data,_url=None):
         filename = None # ダミー
         html = "" # ダミー
 
-        if selenium_mode :
-            with SeleniumLoader(user_agent) as selen :
-                # url読む
-                selen.load_url(url)
-                log.append("フォーム操作実行中...")
-                # アクション処理
-                selen.apply_formActions(*action_list)
-                # HTML抜く
-                html = selen.get_source()
+        if _html :
+            # HTMLの外部注入
+            html = _html
 
-                # スクリーンショットとっちゃう
-                if screenshot_size :
-                    log.append("スクリーンショット取得中...")
-                    # ファイル名作る
-                    _uuid = str(uuid.uuid4())
-                    media_path = settings.MEDIA_ROOT
-                    filename = os.path.join(media_path, _uuid +"_ss.png")
-                    # スクリーンショットサイズの解析
-                    x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
-                    # とる
-                    selen.set_size(x,y).save_screenshot(filename)
         else :
-            time.sleep(1+random.random()*2) # ちょっと待つ : 再帰呼び出し対策
-            # Seleniumモードで無いのならrequestsでシンプルにとる
-            res = requests.get(url) # GETする
-            res.encoding = res.apparent_encoding  # なんかエンコーディング処理
-            html = res.text # body部取得
+            # HTML取得
+            if selenium_mode :
+                with SeleniumLoader(user_agent) as selen :
+                    # url読む
+                    selen.load_url(url)
+                    log.append("フォーム操作実行中...")
+                    # アクション処理
+                    selen.apply_formActions(*action_list)
+                    # HTML抜く
+                    html = selen.get_source()
+
+                    # スクリーンショットとっちゃう
+                    if screenshot_size :
+                        log.append("スクリーンショット取得中...")
+                        # ファイル名作る
+                        _uuid = str(uuid.uuid4())
+                        media_path = settings.MEDIA_ROOT
+                        filename = os.path.join(media_path, _uuid +"_ss.png")
+                        # スクリーンショットサイズの解析
+                        x,y = TEMPLATE_SYSTEM.extract_from(screenshot_size)
+                        # とる
+                        selen.set_size(x,y).save_screenshot(filename)
+            else :
+                time.sleep(1+random.random()*2) # ちょっと待つ : 再帰呼び出し対策
+                # Seleniumモードで無いのならrequestsでシンプルにとる
+                res = requests.get(url) # GETする
+                res.encoding = res.apparent_encoding  # なんかエンコーディング処理
+                html = res.text # body部取得
 
         # コマンドノードツリー生成
         log.append("セレクタ情報を構築中...")

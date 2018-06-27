@@ -93,12 +93,14 @@ class ScrapeAPIVS(viewsets.ViewSet):
         """ POST処理 """
         # POSTからデータ抜く
         url = request.POST.get("url")
+        # POSTからHTMLデータ抜く
+        html = request.POST.get("html")
 
         # データ取得
         scraper_data = get_object_or_404(ScraperData, uuid=pk) # URL指定
 
         # スクレイピング開始
-        result = tasks.do_scrape(scraper_data, _url=url)
+        result = tasks.do_scrape(scraper_data, _url=url,_html=html)
 
         # JSONなのでそのまま返す
         return Response(result)

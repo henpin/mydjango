@@ -1,44 +1,48 @@
-<html>
-<head>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.3/css/AdminLTE.min.css" rel="stylesheet">
-
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.3/js/adminlte.min.js"></script>
-    <script src="/static/js/fabric.min.js"></script>
-    <script src="/static/js/pdf_form.js"></script>
-</head>
-<body class="skin-blue layout-top-nav">
-    <section class="content-header">
-        <h1> 帳票電子化デザイナー</h1>
-    </section>
-    <section>
-        <div class="row col-sm-12">
-            <button class="btn btn-success col-sm-3" id="save_format_2DB">フォームデータの保存</button>
-            <button class="btn btn-success col-sm-3" id="load_format_fromDB">フォームデータの読み込み</button>
-            <button class="btn btn-success col-sm-3" id="gen_form">フォーム作成</button>
-            <button class="btn btn-success col-sm-3" id="gen_pdf">PDF化</button>
+{% extends "base_min.html" %}
+{% block content %}
+<div class="main">
+     <section class="module-small">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <h2 class="module-title font-alt">{{ title }}</h2>
+            </div>
         </div>
-    <section>
-    <section>
         <div class="row col-sm-12">
             <div class="col-sm-8 box box-default">
                 <div class="box-body">
                     <canvas id="c"></canvas>
-                    <img src="/static/img/demo2-2.png" id="my-image" style="display:none;">
+                    <img src="{{ png_file }}" id="my-image" style="display:none;">
                 </div>
             </div>
-            <div class="col-sm-4 box box-default" style="background-color:#e8e8e8">
-                <div class="box-body">
-                    <div style="margin-top:100px">
-                    <form id="form-area">
-                    </form>
+            <div class="col-sm-4" style="background-color:#e8e8e8;height:100%">
+                <div class="col-sm-12">
+                    {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
+                        <h3> オプション</h3>
+                        <div class="form-group">
+                            <label class="control-label">フォーム名</label> 
+                            <input class="form-control" type="text" id="form-name"/>
+                        </div>
+                        <form id="form-area">
+                        </form>
+                    {% else %} <!-- フォーム入力時 -->
+                        <h3>{{ form_name }}</h3>
+                        <input type="hidden" id="form-name" value="{{ form_name }}">
+                    {% endif %}
+                    <div class="row col-sm-12" style="">
+                        <!--<button class="btn btn-success col-sm-12" id="load_format_fromDB">フォームデータの読み込み</button>-->
+                        <!--<button class="btn btn-success col-sm-12" id="save_format_2DB">フォームデータの保存</button>-->
+                        {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
+                            <button class="btn btn-success col-sm-12" id="gen_form">フォーム作成</button>
+                        {% else %} <!-- フォーム入力時 -->
+                            <button class="btn btn-success col-sm-12" id="gen_pdf">PDF出力</button>
+                            <button class="btn btn-success col-sm-12" id="commit">入力完了</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    <!--
     <section>
         <div class="box">
             <div class="box-body">
@@ -65,8 +69,15 @@
             </div>
         </div>
     </section>
+    -->
+    <input type="hidden" id="uuid" value="{{ uuid }}">
     <div id="file_dl"></div>
+</div>
+{% endblock %}
 
+{% block js %}
+    <script src="/static/js/fabric.min.js"></script>
+    <script src="/static/js/pdf_form.js"></script>
     <!-- 注入スクリプト -->
     <script>
         /* あれば読む */
@@ -80,5 +91,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}
