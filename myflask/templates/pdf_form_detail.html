@@ -5,7 +5,7 @@
     <section class="module">
         <div class="row">
             <div class="col-sm-6 col-sm-offset-3">
-                <h2 class="module-title font-alt">{{ form_name }}</h2>
+                <h2 class="module-title font-alt">{{ form_name }} フォーム情報</h2>
             </div>
         </div>
         <div class="col-sm-12">
@@ -36,12 +36,33 @@
             </table>
         </div>
     </section>
-    <section class="">
+    <section class="module-small">
         <div class="col-sm-12">    
             <div class="col-sm-4 col-sm-offset-4">
                 <a class="btn btn-lg btn-primary col-sm-12" href="{{ url_for("load_form",_uuid=uuid) }}" role="button">入力する</a>
             </div>
         <div>
+    </section>
+    <section class="module">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <h2 class="module-title font-alt">フォーム公開</h2>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="col-sm-12">
+                <div class="col-sm-10 col-sm-offset-1">
+                    <h4 class="col-sm-2">入力画面の招待URL</h4>
+                    <pre class="text-center col-sm-10">{{ iframe_url }}</pre>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="col-sm-10 col-sm-offset-1">
+                    <h4 class="col-sm-2">Webページに埋め込む場合</h4>
+                    <pre class="text-center col-sm-10">{{ iframe_tag }}</pre>
+                </div>
+            </div>
+        </div>
     </section>
 </div>
 {% endblock %}

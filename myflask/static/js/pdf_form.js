@@ -28,6 +28,9 @@ function App(){
         canvas.setWidth($("#my-image").width());
         canvas.setHeight($("#my-image").height());
 
+        // set center
+        $(".canvas-container").css("margin:auto;")
+
         // bg
         self.init_bg()
     }

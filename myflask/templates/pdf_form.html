@@ -4,44 +4,50 @@
      <section class="module-small">
         <div class="row">
             <div class="col-sm-6 col-sm-offset-3">
-                <h2 class="module-title font-alt">{{ title }}</h2>
+                <h2 class="module-title font-alt">{{ form_name }}</h2>
+            <div class="module-subtitle font-serif">{{ title }} </div>
             </div>
         </div>
-        <div class="row col-sm-12">
-            <div class="col-sm-8 box box-default">
-                <div class="box-body">
-                    <canvas id="c"></canvas>
-                    <img src="{{ png_file }}" id="my-image" style="display:none;">
-                </div>
+        <div class="col-sm-12">
+            {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
+            <div class="col-sm-8">
+                <canvas id="c"></canvas>
+                <img src="{{ png_file }}" id="my-image" style="display:none;">
             </div>
             <div class="col-sm-4" style="background-color:#e8e8e8;height:100%">
                 <div class="col-sm-12">
-                    {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
-                        <h3> オプション</h3>
-                        <div class="form-group">
-                            <label class="control-label">フォーム名</label> 
-                            <input class="form-control" type="text" id="form-name"/>
-                        </div>
-                        <form id="form-area">
-                        </form>
-                    {% else %} <!-- フォーム入力時 -->
-                        <h3>{{ form_name }}</h3>
-                        <input type="hidden" id="form-name" value="{{ form_name }}">
-                    {% endif %}
+                    <h3> オプション</h3>
+                    <div class="form-group">
+                        <label class="control-label">フォーム名</label> 
+                        <input class="form-control" type="text" id="form-name"/>
+                    </div>
+                    <form id="form-area">
+                    </form>
                     <div class="row col-sm-12" style="">
                         <!--<button class="btn btn-success col-sm-12" id="load_format_fromDB">フォームデータの読み込み</button>-->
                         <!--<button class="btn btn-success col-sm-12" id="save_format_2DB">フォームデータの保存</button>-->
-                        {% if subtitle=="form_design" %} <!-- フォームデザイン時 -->
-                            <button class="btn btn-success col-sm-12" id="gen_form">フォーム作成</button>
-                        {% else %} <!-- フォーム入力時 -->
-                            <button class="btn btn-success col-sm-12" id="gen_pdf">PDF出力</button>
-                            <button class="btn btn-success col-sm-12" id="commit">入力完了</button>
-                        {% endif %}
+                        <button class="btn btn-success col-sm-12" id="gen_form">フォーム作成</button>
                     </div>
                 </div>
             </div>
+            {% endif %}
+
+            {% if subtitle=="form_input" %}<!-- フォーム入力時 -->
+            <input type="hidden" id="form-name" value="{{ form_name }}">
+            <div class="col-sm-12">
+                <canvas id="c"></canvas>
+                <img src="{{ png_file }}" id="my-image" style="display:none;">
+            </div>
+            <div class="col-sm-12" style="position:fixed;bottom:10px;">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <!--<button class="btn btn-lg btn-info col-sm-6" id="gen_pdf">PDF出力</button>-->
+                    <button class="btn btn-lg btn-success col-sm-6 col-sm-offset-3" id="commit">入力完了</button>
+                </div>
+            </div>
+            {% endif%}
         </div>
     </section>
+
     <!--
     <section>
         <div class="box">
@@ -91,4 +97,7 @@
             }
         });
     </script>
+    <style type="text/css">
+        .canvas-container { margin : auto; }
+    </style>
 {% endblock %}

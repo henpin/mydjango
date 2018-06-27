@@ -8,6 +8,7 @@ import json
 import uuid
 import os
 from datetime import datetime
+import urllib
 
 import pdf_utils
 
@@ -20,6 +21,7 @@ pdfDB = PDFFormDB()
 pdf_commitDB = PDFFormCommitDataDB()
 
 PDFApp = pdf_utils.App()
+URL_HEADER = "http://127.0.0.1:5000"
 
 # general
 def is_allowedFile(filename):
@@ -51,6 +53,11 @@ def home():
     form_data = pdfDB.all()
 
     return render_template("home.html", form_data=form_data)
+
+@app.route("/demo/")
+def demo():
+    """ ワードファイルアップロード基底ペー ジ"""
+    return render_template("demo.html")
 
 @app.route("/file_upload/upload/", methods=["POST"])
 def upload_file():
@@ -113,12 +120,19 @@ def pdf_form_detail(_uuid):
     # メタ名リスト抽出
     metaName_list = form_data["metaNames"]
 
+    # iframeフレーズつくる
+    iframe_url = URL_HEADER +url_for("load_input_form",_uuid=_uuid) # 埋め込みフォームURL
+    iframe_tag = '<iframe src="%s" width=1190 height=1800 scrolling="no" frameborder="yes"></iframe>' % (iframe_url,)
+
     # 公開NS
     ns = {
         "title" : u"フォームデータ",
         "form_name" : form_name,
-        "uuid" : _uuid
+        "uuid" : _uuid,
+        "iframe_url" : iframe_url,
+        "iframe_tag" : iframe_tag,
     }
+
     # レンダリング
     return render_template("pdf_form_detail.html", metaName_list=metaName_list, data_list = data_list, **ns)
 
@@ -230,6 +244,27 @@ def load_form(_uuid):
 
     else :
         return "<p>Not Found</p>"
+
+@app.route("/pdf_form/input_form/<string:_uuid>", methods=["GET"])
+def load_input_form(_uuid):
+    """ フォーム読み込む """
+    result = pdfDB.search_data(_uuid) # リザルト抜く
+    if result :
+        # 値抜く
+        json_data = result["json"]
+
+        # コンテキスト構築
+        ns = {
+            "uuid" : _uuid, # 基本UUID
+            "png_file" : "/static/media/" +gen_png_fileName(_uuid,root=False), # ファイル名
+        }
+        
+        # フォーム作成画面レンダリング
+        return render_template("pdf_input_form.html", json_data=json_data, **ns)
+
+    else :
+        return "<p>Not Found</p>"
+
 
 @app.route("/pdf_form/form/open/<string:_uuid>", methods=["GET"])
 def open_form(_uuid):
