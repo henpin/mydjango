@@ -94,6 +94,7 @@
                 json_data = $('<div/>').html(json_data).text();
                 console.log(json_data);
                 app.load_dataJson(json_data); 
+                app.complete_default(); // 入力補完
             }
         });
     </script>

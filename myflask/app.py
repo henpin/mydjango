@@ -7,6 +7,7 @@ from flask_tinydb import PDFFormDB, PDFFormCommitDataDB
 import json
 import uuid
 import os
+import re
 from datetime import datetime
 import urllib
 
@@ -58,6 +59,11 @@ def home():
 def demo():
     """ ワードファイルアップロード基底ペー ジ"""
     return render_template("demo.html")
+
+@app.route("/demo2/")
+def demo2():
+    """ ワードファイルアップロード基底ペー ジ"""
+    return render_template("demo2.html")
 
 @app.route("/file_upload/upload/", methods=["POST"])
 def upload_file():
@@ -119,10 +125,12 @@ def pdf_form_detail(_uuid):
 
     # メタ名リスト抽出
     metaName_list = form_data["metaNames"]
+    #metaName_list_filtered = filter(lambda s: not re.match(u'入力(.|..)',s), metaName_list)
+    #metaName_list = metaName_list_filtered if metaName_list_filtered else metaName_list
 
     # iframeフレーズつくる
     iframe_url = URL_HEADER +url_for("load_input_form",_uuid=_uuid) # 埋め込みフォームURL
-    iframe_tag = '<iframe src="%s" width=1190 height=1800 scrolling="no" frameborder="yes"></iframe>' % (iframe_url,)
+    iframe_tag = '<iframe src="%s" width=1190 height=1800 scrolling="no"></iframe>' % (iframe_url,)
 
     # 公開NS
     ns = {
@@ -150,7 +158,7 @@ def generate_pdf(json_data,template_fileName):
         for val in data_list.values() : # 全フォームテキストデータでくるくる
             # データ抽出
             x,y = pdf.pos2lefttop(
-                val["x"]/2, val["y"]/2 +val["height"]/2 # 半分
+                val["x"]/1.6, val["y"]/1.6 +val["height"]/1.6 # 半分
             )
             text = val["text"]
              # 書き込み
@@ -295,6 +303,16 @@ def open_form(_uuid):
     else :
         return "<p>Not Found</p>"
 
+@app.route("/pdf_form/form/delete/<string:_uuid>", methods=["GET"])
+def delete_form(_uuid):
+    """ フォーム削除 """
+    # 消す
+    pdfDB.delete(_uuid)
+
+    # ホームに飛ばす
+    flash(u"フォームを削除しました")
+    return redirect(url_for('home'))
+
 
 @app.route("/pdf_form/commit/", methods=["POST"])
 def commit_data():
@@ -328,16 +346,6 @@ def delete_formData(_uuid):
     # とりdetail
     flash(u"入力データを削除しました")
     return redirect(url_for('pdf_form_detail',_uuid=form_data["uuid"]))
-
-@app.route("/pdf_form/form/delete/<string:_uuid>", methods=["GET"])
-def delete_form(_uuid):
-    """ 消す """
-    pdfDB.delete(_uuid)
-
-    # とりまＨＯＭＥ
-    flash(u"フォームデータを削除しました")
-    return redirect("home")
-
 
 
 if __name__ == "__main__":

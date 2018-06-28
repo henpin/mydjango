@@ -22,7 +22,7 @@ function App(){
     /* キャンバス初期化 */
     this.init_canvas = function(){
         // init canvas
-        canvas = new fabric.Canvas('c');
+        canvas = new fabric.Canvas('c',{isDrawingMode: false});
 
         // set canvasSize
         canvas.setWidth($("#my-image").width());
@@ -38,7 +38,8 @@ function App(){
     /* 背景初期化 */
     this.init_bg = function(){
         var img_path = $("#my-image").attr("src"); // ファイルパス
-        canvas.setBackgroundImage(img_path, canvas.renderAll.bind(canvas));
+        setTimeout(function(){
+            canvas.setBackgroundImage(img_path, canvas.renderAll.bind(canvas));},0);
     }
 
     /* キャンバスイベントの初期化*/
@@ -86,6 +87,10 @@ function App(){
                 cornerSize: 6, hasRotatingPoint : false,
             });
             canvas.add(group)
+
+            // センタリング定義
+            self.set_text_center(text,rect);
+
             // 保存
             elem_holder[input_num] = group
 
@@ -93,23 +98,73 @@ function App(){
             $("#form-area").append(
                 '<div class="form-group col-sm-12 row">'
                     +'<div class="col-sm-12"><label class="control-label">入力欄'+input_num+'</label></div>'
-                    +'<div class="col-sm-12 form-inline">'
-                    +'<input type="text" class="form-control form-input col-sm-8" placeholder="入力項目名" data-target="'+input_num+'" style="width:300px;">'
+                    +'<div class="col-sm-12">'
+                    +'<input type="text" class="input-name form-control form-input" placeholder="入力項目名" data-target="'+input_num+'">'
+                    /*
                     +'<select class="form-control col-sm-4">'
                         +'<option value="サンプル1">フリー入力</option> <option value="サンプル2">数字</option> <option value="サンプル3">郵便番号</option>'
                         +'<option value="必須">必須</option>'
                     +'</select>'
+                    */
+                    +'<input type="text" class="default-value form-control form-input" placeholder="デフォルト値" data-target="'+input_num+'" autocomplete="on" list="dv">'
+                    +'<datalist id="dv">'
+                    +'<option value="%full_year%">西暦</option> <option value="%lower_year%">西暦下二桁</option> <option value="%jp_year%">和暦</option>'
+                    +'<option value="%jp_era%">元号</option> <option value="%month%">月(入力月)</option> <option value="%date%">日(入力日)</option>'
+                    +'<option value="%day%">曜日(入力日)</option><option value="%name%">名前(入力者)</option>'
+                    +'</datalist>'
                     +'</div>'
                 +'</div>'
                 );
             // イベントつける
-            $(".form-input").change(function(){
+            $(".input-name").change(function(){
                 // 値を変える 
                 elem_holder[$(this).attr("data-target")].item(1).set({ text : $(this).val() });
                 // メタ名も一緒につける
                 elem_holder[$(this).attr("data-target")].item(1).metaName = $(this).val();
+
                 canvas.renderAll(); // レンダリング
             })
+            $(".default-value").change(function(){
+                // デフォルト値くっつける
+                elem_holder[$(this).attr("data-target")].item(1).defaultValue = $(this).val();
+            })
+        });
+
+        canvas.on({
+            'touch:gesture': function(e) {
+                if (e.e.touches && e.e.touches.length == 2) {
+                    pausePanning = true;
+                    var point = new fabric.Point(e.self.x, e.self.y);
+                    if (e.self.state == "start") {
+                        zoomStartScale = self.canvas.getZoom();
+                    }
+                    var delta = zoomStartScale * e.self.scale;
+                    self.canvas.zoomToPoint(point, delta);
+                    pausePanning = false;
+                }
+            },
+            'object:selected': function() {
+                pausePanning = true;
+            },
+            'selection:cleared': function() {
+                pausePanning = false;
+            },
+            'touch:drag': function(e) {
+                if (pausePanning == false && undefined != e.e.layerX && undefined != e.e.layerY) {
+                    currentX = e.e.layerX;
+                    currentY = e.e.layerY;
+                    xChange = currentX - lastX;
+                    yChange = currentY - lastY;
+
+                    if( (Math.abs(currentX - lastX) <= 50) && (Math.abs(currentY - lastY) <= 50)) {
+                        var delta = new fabric.Point(xChange, yChange);
+                        canvas.relativePan(delta);
+                    }
+
+                    lastX = e.e.layerX;
+                    lastY = e.e.layerY;
+                }
+            },
         });
     }
 
@@ -135,6 +190,7 @@ function App(){
                         text : text.text,
                         font : text.fontSize,
                         order : i, // 順序
+                        defaultValue : text.defaultValue // デフォルト値
                     };
                 }
             })
@@ -190,7 +246,11 @@ function App(){
             var text = new fabric.IText(data.text, {
                 fontSize:16, textAlign: "center",
             });
+
+            // 属性地束縛
             text.metaName = metaName; // メタ名ぶっこむ
+            text.defaultValue = data.defaultValue; // デフォルト値埋めとく
+
             // 共通設定あてる
             rect.set(settings); text.set(settings);
 
@@ -276,6 +336,8 @@ function App(){
                 _text.selectAll()
                 //text.dirty = false;
                 //canvas.renderAll()
+            } else {
+                _text.exitEditing();
             }
         })
 
@@ -286,6 +348,9 @@ function App(){
 
         canvas.add(rect);
         canvas.add(text);
+
+        // センタリング定義
+        self.set_text_center(text,rect);
 
         // ElemListにほうりこむ
         elem_list.push(text);
@@ -368,6 +433,93 @@ function App(){
             $form.appendTo(document.body);
             $form.submit(); // サブミット
         })
+    }
+
+    /**
+    * デフォルト値入力補完する
+    */
+    var now = new Date();
+    this.complete_default = function(){
+        // 全エレメントを捜査する
+        elem_list.forEach( elem => {
+            // デフォルト値設定
+            switch(elem.defaultValue){
+                case "%full_year%": // フル西暦
+                    elem.set({ "text" : now.getFullYear().toString() });
+                    break;
+                case "%lower_year%": // 西暦下二桁
+                    elem.set({ "text" : now.getFullYear().toString().slice(-2) });
+                    break;
+                case "%jp_year%": // 和暦
+                    elem.set({ "text" : now.toLocaleDateString("ja-JP-u-ca-japanese",{year:"numeric"}).slice(0,2) });
+                    break;
+                case "%jp_era%": // 元号
+                    elem.set({ "text" : now.toLocaleDateString("ja-JP-u-ca-japanese",{"era":"short"}).slice(-1) });
+                    break;
+                case "%month%": // 月
+                    elem.set({ "text" : (now.getMonth()+1).toString() });
+                    break;
+                case "%date%": // 日
+                    elem.set({ "text" : now.getDate().toString() });
+                    break;
+                case "%day%": // 曜日
+                    elem.set({ "text" : ["日","月","火","水","木","金","土"][now.getDay()] });
+                    break;
+                case "%name%": // 名前
+                    elem.set({ "text" : "神長優舞" });
+                    break;
+                case undefined:
+                    elem.set({ "text" : "" });
+                    break;
+                default :
+                    elem.set({ "text" : elem.defaultValue });
+            }
+            // 変化イベントかける
+            canvas.trigger('text:changed', {target: elem});
+        });
+    }
+
+    /**
+    * テキストをレクトの中央にする
+    */
+    this.set_text_center = function(_text,_rect){
+        // クロージャ用に名前再束縛
+        var text = _text;
+        var rect = _rect;
+        // センタリング関数
+        var do_centering = function(){
+            // 中心地を計算
+            var center_of_text = [ text.left +text.width/2, text.top +text.height/2 ];
+            var center_of_rect = [ rect.left +rect.width/2, rect.top +rect.height/2 ];
+
+            // 中心地の差分を取得
+            diff = [
+                center_of_rect[0] -center_of_text[0],
+                center_of_rect[1] -center_of_text[1]
+            ]
+
+            // 差分をleft-topに適用
+            pos = [
+                text.left +diff[0],
+                text.top +diff[1]
+            ]
+
+            // 適用
+            text.set({
+                left : pos[0],
+                top : pos[1]
+            });
+        }
+
+        // 変更イベントを束縛
+        canvas.on('text:changed', function(e) {
+            if ( e.target == text ){
+                do_centering(); // センタリング関数する
+            }
+        });
+
+        // とりまかける
+        do_centering();
     }
 }
 
